@@ -10,10 +10,7 @@ struct Args {
 fn main() {
 	let args = Args::parse();
 	let src = std::fs::read_to_string(args.file).unwrap();
-	let print_tab_size = match args.print_tab_size {
-		Some(size) => size,
-		None => 2,
-	};
+	let print_tab_size = args.print_tab_size.unwrap_or(2);
 
 	let mut parser = schlange::parser::Parser::new(&src);
 	let stmts = parser.parse().unwrap();
