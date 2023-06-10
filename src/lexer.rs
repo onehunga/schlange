@@ -2,141 +2,141 @@ use crate::token::Token;
 
 const SPACE4: u32 = b' ' as u32 | (b' ' as u32) << 8 | (b' ' as u32) << 16 | (b' ' as u32) << 24;
 
-struct KW {
+struct Keyword {
 	pub name: &'static [u8],
 	pub tok: Token
 }
 
-const KEYWORDS: [KW; 33] = [
-	KW {
+const KEYWORDS: [Keyword; 33] = [
+	Keyword {
 		name: "and".as_bytes(),
 		tok: Token::And
 	},
-	KW {
+	Keyword {
 		name: "as".as_bytes(),
 		tok: Token::As
 	},
-	KW {
+	Keyword {
 		name: "assert".as_bytes(),
 		tok: Token::Assert
 	},
-	KW {
+	Keyword {
 		name: "break".as_bytes(),
 		tok: Token::Break
 	},
-	KW {
+	Keyword {
 		name: "class".as_bytes(),
 		tok: Token::Class,
 	},
-	KW {
+	Keyword {
 		name: "continue".as_bytes(),
 		tok: Token::Continue,
 	},
-	KW {
+	Keyword {
 		name: "def".as_bytes(),
 		tok: Token::Def
 	},
-	KW {
+	Keyword {
 		name: "del".as_bytes(),
 		tok: Token::Del,
 	},
-	KW {
+	Keyword {
 		name: "elif".as_bytes(),
 		tok: Token::Elif,
 	},
-	KW {
+	Keyword {
 		name: "else".as_bytes(),
 		tok: Token::Else
 	},
-	KW {
+	Keyword {
 		name: "except".as_bytes(),
 		tok: Token::Except
 	},
-	KW {
+	Keyword {
 		name: "False".as_bytes(),
 		tok: Token::False
 	},
-	KW {
+	Keyword {
 		name: "finally".as_bytes(),
 		tok: Token::Finally
 	},
-	KW {
+	Keyword {
 		name: "for".as_bytes(),
 		tok: Token::For
 	},
-	KW {
+	Keyword {
 		name: "from".as_bytes(),
 		tok: Token::From
 	},
-	KW {
+	Keyword {
 		name: "global".as_bytes(),
 		tok: Token::Global
 	},
-	KW {
+	Keyword {
 		name: "if".as_bytes(),
 		tok: Token::If
 	},
-	KW {
+	Keyword {
 		name: "import".as_bytes(),
 		tok: Token::Import
 	},
-	KW {
+	Keyword {
 		name: "in".as_bytes(),
 		tok: Token::In
 	},
-	KW {
+	Keyword {
 		name: "is".as_bytes(),
 		tok: Token::Is
 	},
-	KW {
+	Keyword {
 		name: "lambda".as_bytes(),
 		tok: Token::Lambda
 	},
-	KW {
+	Keyword {
 		name: "None".as_bytes(),
 		tok: Token::None
 	},
-	KW {
+	Keyword {
 		name: "nonlocal".as_bytes(),
 		tok: Token::Nonlocal
 	},
-	KW {
+	Keyword {
 		name: "not".as_bytes(),
 		tok: Token::Not
 	},
-	KW {
+	Keyword {
 		name: "or".as_bytes(),
 		tok: Token::Or
 	},
-	KW {
+	Keyword {
 		name: "pass".as_bytes(),
 		tok: Token::Pass
 	},
-	KW {
+	Keyword {
 		name: "raise".as_bytes(),
 		tok: Token::Raise
 	},
-	KW {
+	Keyword {
 		name: "return".as_bytes(),
 		tok: Token::Return
 	},
-	KW {
+	Keyword {
 		name: "True".as_bytes(),
 		tok: Token::True
 	},
-	KW {
+	Keyword {
 		name: "try".as_bytes(),
 		tok: Token::Try
 	},
-	KW {
+	Keyword {
 		name: "while".as_bytes(),
 		tok: Token::While
 	},
-	KW {
+	Keyword {
 		name: "with".as_bytes(),
 		tok: Token::With
 	},
-	KW {
+	Keyword {
 		name: "yield".as_bytes(),
 		tok: Token::Yield
 	},

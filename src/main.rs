@@ -11,10 +11,10 @@ fn main() {
 	let src = std::fs::read_to_string(args.file).unwrap();
 
 	let mut parser = schlange::parser::Parser::new(&src);
-	let stmt = parser.parse().unwrap();
+	let stmts = parser.parse().unwrap();
 
-	match &stmt[0] {
+	stmts.iter().for_each(|stmt| match stmt {
 		ast::Statement::Expression(expr) => ast::print_expr(expr.as_ref(), 0),
 		_ => {}
-	}
+	});
 }

@@ -68,7 +68,7 @@ impl<'a> Parser<'a> {
 	fn expression(&mut self, prec: Precedence) -> Expr {
 		let mut left = self.prefix()?;
 
-		while prec <= self.peek_prec() && self.peek != Token::NewLine {
+		while prec <= self.peek_prec() && self.peek != Token::NewLine && self.peek != Token::Eof {
 			self.advance();
 			left = self.infix(left)?;
 		}

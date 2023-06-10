@@ -34,7 +34,8 @@ pub enum Expression {
 }
 
 fn tabs(mut depth: usize) {
-	depth *= 2;
+	if depth == 0 { return; }
+	depth *= 4;
 	print!("{:>depth$}", ' ');
 }
 
