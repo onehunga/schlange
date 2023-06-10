@@ -1,6 +1,5 @@
 use clap::Parser;
-
-use schlange::{lexer::Lexer, token::Token};
+use schlange::ast;
 
 #[derive(Parser)]
 struct Args {
@@ -11,14 +10,11 @@ fn main() {
 	let args = Args::parse();
 	let src = std::fs::read_to_string(args.file).unwrap();
 
-	let mut lex = Lexer::new(&src);
-	loop {
-		let tok = lex.next();
+	let mut parser = schlange::parser::Parser::new(&src);
+	let stmt = parser.parse().unwrap();
 
-		println!("{tok:?}");
-
-		if tok == Token::Eof {
-			break;
-		}
+	match &stmt[0] {
+		ast::Statement::Expression(expr) => ast::print_expr(expr.as_ref(), 0),
+		_ => {}
 	}
 }
