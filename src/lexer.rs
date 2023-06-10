@@ -184,7 +184,7 @@ impl<'a> Lexer<'a> {
 			b'\n' => Token::NewLine,
 			b' ' => {
 				unsafe {
-					if *self.code.as_ptr().add(self.read - 1).cast::<u32>() == SPACE4 {
+					if self.code.as_ptr().add(self.read - 1).cast::<u32>().read() == SPACE4 {
 						return Token::Indent;
 					}
 				}

@@ -54,9 +54,9 @@ fn numbers() {
 #[test]
 fn identifiers() {
 	run(r#"
-		and def class True None
-		False lambda return
-	"#, &[
+and def class True None
+False lambda return
+"#, &[
 		Token::NewLine,
 		Token::And,
 		Token::Def,
