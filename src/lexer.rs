@@ -185,6 +185,7 @@ impl<'a> Lexer<'a> {
 			b' ' => {
 				unsafe {
 					if self.code.as_ptr().add(self.read - 1).cast::<u32>().read() == SPACE4 {
+						self.read += 3;
 						return Token::Indent;
 					}
 				}

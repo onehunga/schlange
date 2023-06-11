@@ -30,6 +30,7 @@ pub struct Parser<'a> {
 	peek: Token,
 	current_scope: *const Scope,
 	depth: usize,
+	advanced: bool,
 }
 
 impl<'a> Parser<'a> {
@@ -46,6 +47,7 @@ impl<'a> Parser<'a> {
 			peek,
 			current_scope,
 			depth: 0,
+			advanced: false
 		}
 	}
 
@@ -66,15 +68,21 @@ impl<'a> Parser<'a> {
 				self.advance();
 				self.statement()
 			}
+			// Token::Indent => {
+			// 	self.advance();
+			// 	self.statement()
+			// }
 			Token::Eof => Ok(Statement::Eof),
 			Token::Illegal => Err(ParseError::IllegalToken),
 			Token::Def => self.function(),
 			Token::Pass => Ok(Statement::Pass),
 			Token::Return => {
-				self.advance();
-				let expr = match self.current {
+				let expr = match self.peek {
 					Token::Eof | Token::NewLine => None,
-					_ => Some(self.expression(Precedence::None)?),
+					_ => {
+						self.advance();
+						Some(self.expression(Precedence::None)?)
+					}
 				};
 				Ok(Statement::Return(expr))
 			},
@@ -141,7 +149,6 @@ impl<'a> Parser<'a> {
 
 	fn depth(&mut self) -> usize {
 		let mut depth = 0;
-		self.advance();
 
 		loop {
 			match self.current {
@@ -156,7 +163,9 @@ impl<'a> Parser<'a> {
 	}
 
 	fn scope(&mut self) -> ParserResult<Scope> {
+		self.advance(); // skip the colon
 		let depth = self.depth();
+		println!("scope depth: {depth}");
 
 		if self.depth >= depth {
 			return Err(ParseError::ExpectedIndentation(self.current.clone()))
@@ -168,10 +177,14 @@ impl<'a> Parser<'a> {
 		let mut scope = Scope::new(self.current_scope);
 		self.current_scope = &scope;
 
-		scope.statements.push(self.statement()?);
-
-		while self.depth() == depth {
+		loop {
+			dbg!(&self.current);
+			dbg!(&self.peek);
 			scope.statements.push(self.statement()?);
+			self.advance();
+			if self.depth() < depth {
+				break;
+			}
 		}
 
 		// Restore
@@ -222,6 +235,10 @@ impl<'a> Parser<'a> {
 	}
 
 	fn advance(&mut self) {
+		if self.advanced {
+			self.advanced = false;
+			return;
+		}
 		swap(&mut self.current, &mut self.peek);
 		self.peek = self.lexer.next();
 	}

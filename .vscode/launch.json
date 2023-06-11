@@ -1,0 +1,32 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "debug windows",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${workspaceRoot}/target/debug/schlange",
+			"args": [ "./test/hello_world.py" ],
+			"stopAtEntry": false,
+			"cwd": "${workspaceRoot}",
+			"environment": [],
+			"externalConsole": false,
+			"MIMode": "gdb",
+			// "miDebuggerPath": "gdb",
+			"miDebuggerPath": "/usr/bin/gdb",
+			"setupCommands": [
+				{
+					"description": "Enable pretty-printing for gdb",
+					"text": "-enable-pretty-printing",
+					"ignoreFailures": true
+				},
+				// {
+				// 	"description": "Set Disassembly Flavor to Intel",
+				// 	"text": "-gdb-set disassembly-flavor intel",
+				// 	"ignoreFailures": true
+				// }
+			]
+		}
+	],
+	"compounds": []
+}
