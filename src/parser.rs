@@ -1,13 +1,15 @@
 use std::mem::swap;
 
-use crate::{token::Token, lexer::Lexer, ast::{Expression, BinOp, Statement}};
+use crate::{token::Token, lexer::Lexer, ast::{Expression, BinOp, Statement, Scope}};
 
 #[derive(Debug)]
 pub enum ParseError {
 	Expression,
 	InvalidOperator,
 	InvalidExpressionKind(Token),
-	InvalidPrefixExpression(Token),
+	InvalidPrefixExpression(Token, Token),
+	UnexpectedToken { found: Token, expected: Vec<Token> },
+	ExpectedIndentation(Token),
 	IllegalToken,
 }
 
@@ -26,6 +28,8 @@ pub struct Parser<'a> {
 	lexer: Lexer<'a>,
 	current: Token,
 	peek: Token,
+	current_scope: *const Scope,
+	depth: usize,
 }
 
 impl<'a> Parser<'a> {
@@ -34,11 +38,14 @@ impl<'a> Parser<'a> {
 		let mut lexer = Lexer::new(source);
 		let current = lexer.next();
 		let peek = lexer.next();
+		let current_scope = std::ptr::null();
 
 		Self {
 			lexer,
 			current,
-			peek
+			peek,
+			current_scope,
+			depth: 0,
 		}
 	}
 
@@ -61,8 +68,116 @@ impl<'a> Parser<'a> {
 			}
 			Token::Eof => Ok(Statement::Eof),
 			Token::Illegal => Err(ParseError::IllegalToken),
+			Token::Def => self.function(),
+			Token::Pass => Ok(Statement::Pass),
+			Token::Return => {
+				self.advance();
+				let expr = match self.current {
+					Token::Eof | Token::NewLine => None,
+					_ => Some(self.expression(Precedence::None)?),
+				};
+				Ok(Statement::Return(expr))
+			},
 			_ => Ok(Statement::Expression(self.expression(Precedence::None)?))
 		}
+	}
+
+	fn function(&mut self) -> Stmt {
+		self.advance();
+		let name = match self.current.clone() {
+			Token::Ident(name) => name,
+			_ => return Err(ParseError::UnexpectedToken {
+				found: self.current.clone(),
+				expected: vec![Token::Ident("...".to_string())] }
+			),
+		};
+		self.advance(); 
+
+		match self.current {
+			Token::LParen => { self.advance() }
+			_ => return Err(ParseError::UnexpectedToken {
+				found: self.current.clone(),
+				expected: vec![Token::LParen]}
+			)
+		}
+
+		let mut parameters = vec![];
+
+		loop {
+			match self.current.clone() {
+				Token::RParen => { self.advance(); break},
+				Token::NewLine | Token::Eof => return Err(ParseError::UnexpectedToken {
+					found: self.current.clone(),
+					expected: vec![Token::RParen]}
+				),
+				Token::Ident(ident) => parameters.push(ident.clone()),
+				Token::Comma => {
+					match &self.peek {
+						Token::Ident(_) => {},
+						_ => return Err(ParseError::UnexpectedToken {
+							found: self.peek.clone(),
+							expected: vec![Token::Ident("...".to_string())],
+						})
+					}
+				},
+				Token::Illegal => return Err(ParseError::IllegalToken),
+				_ => return Err(ParseError::UnexpectedToken {
+					found: self.current.clone(),
+					expected: vec![Token::Ident("...".to_string()), Token::Comma, Token::RParen]}
+				)
+			}
+
+			self.advance();
+		}
+
+		match self.current {
+			Token::Colon => Ok(Statement::Function(name, parameters, self.scope()?)),
+			_ => Err(ParseError::UnexpectedToken {
+				found: self.current.clone(),
+				expected: vec![Token::Colon]
+			})
+		}
+	}
+
+	fn depth(&mut self) -> usize {
+		let mut depth = 0;
+		self.advance();
+
+		loop {
+			match self.current {
+				Token::NewLine => depth = 0,
+				Token::Indent => depth += 1,
+				_ => break,
+			}
+
+			self.advance();
+		}
+		depth
+	}
+
+	fn scope(&mut self) -> ParserResult<Scope> {
+		let depth = self.depth();
+
+		if self.depth >= depth {
+			return Err(ParseError::ExpectedIndentation(self.current.clone()))
+		}
+
+		let old_depth = self.depth;
+		self.depth = depth;
+		
+		let mut scope = Scope::new(self.current_scope);
+		self.current_scope = &scope;
+
+		scope.statements.push(self.statement()?);
+
+		while self.depth() == depth {
+			scope.statements.push(self.statement()?);
+		}
+
+		// Restore
+		self.current_scope = scope.parent;
+		self.depth = old_depth;
+		Ok(scope)
 	}
 
 	fn expression(&mut self, prec: Precedence) -> Expr {
@@ -77,10 +192,12 @@ impl<'a> Parser<'a> {
 	}
 
 	fn prefix(&mut self) -> Expr {
-		match self.current {
-			Token::Int(i) => Ok(Box::new(Expression::Int(i))),
-			Token::Float(f) => Ok(Box::new(Expression::Float(f))),
-			_ => Err(ParseError::InvalidPrefixExpression(self.current.clone()))
+		match &self.current {
+			Token::Int(int) => Ok(Box::new(Expression::Int(*int))),
+			Token::Float(float) => Ok(Box::new(Expression::Float(*float))),
+			Token::Ident(ident) => Ok(Box::new(Expression::Ident(ident.clone()))),
+			Token::String(string) => Ok(Box::new(Expression::String(string.clone()))),
+			_ => Err(ParseError::InvalidPrefixExpression(self.current.clone(), self.peek.clone()))
 		}
 	}
 

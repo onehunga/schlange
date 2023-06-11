@@ -1,22 +1,21 @@
 use clap::Parser;
-use schlange::ast;
+use schlange::print::{print_statement, TAB};
 
 #[derive(Parser)]
 struct Args {
 	pub file: String,
-	pub print_tab_size: Option<usize>,
+
+	#[arg(default_value_t = 2)]
+	pub print_tab_size: usize,
 }
 
 fn main() {
 	let args = Args::parse();
 	let src = std::fs::read_to_string(args.file).unwrap();
-	let print_tab_size = args.print_tab_size.unwrap_or(2);
+	unsafe { TAB = args.print_tab_size };
 
 	let mut parser = schlange::parser::Parser::new(&src);
 	let stmts = parser.parse().unwrap();
 
-	stmts.iter().for_each(|stmt| match stmt {
-		ast::Statement::Expression(expr) => ast::print_expr(expr.as_ref(), print_tab_size, 0),
-		_ => {}
-	});
+	stmts.iter().for_each(|stmt| print_statement(stmt, 0));
 }

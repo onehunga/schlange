@@ -188,7 +188,7 @@ impl<'a> Lexer<'a> {
 						return Token::Indent;
 					}
 				}
-				return self.next();
+				self.next()
 			},
 			b'\t' => Token::Indent,
 			b'\r' => self.next(),
@@ -292,11 +292,11 @@ impl<'a> Lexer<'a> {
 #[inline(always)]
 fn is_alpha(ch: u8) -> bool {
 	let ch = ch as char;
-	'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
+	ch.is_ascii_lowercase() || ch.is_ascii_uppercase() || ch == '_'
 }
 
 #[inline(always)]
 fn is_digit(ch: u8) -> bool {
 	let ch = ch as char;
-	'0' <= ch && ch <= '9'
+	ch.is_ascii_digit()
 }
