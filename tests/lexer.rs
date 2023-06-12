@@ -43,9 +43,9 @@ fn double_tokens() {
 
 #[test]
 fn numbers() {
-	run("69 3.14 420 2.71", &[
+	run(&format!("69 {} 420 2.71", std::f64::consts::PI), &[
 		Token::Int(69),
-		Token::Float(3.14),
+		Token::Float(std::f64::consts::PI),
 		Token::Int(420),
 		Token::Float(2.71),
 	]);
