@@ -27,7 +27,7 @@ fn main() {
 	let mut parser = schlange::parser::Parser::new(&src);
 
 	match parser.parse() {
-		Ok(stmts) => stmts.iter().for_each(|stmt| print_statement(stmt, 0)),
+		Ok(stmts) => stmts.statements.iter().for_each(|stmt| print_statement(stmt, 0)),
 		Err(err) => eprintln!("{err:?}"),
 	}
 

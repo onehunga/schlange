@@ -16,6 +16,7 @@ pub enum ParseError {
 pub type ParserResult<T> = Result<T, ParseError>;
 pub type Stmt = ParserResult<Statement>;
 pub type Expr = ParserResult<Box<Expression>>;
+pub type Ast = ParserResult<Box<Scope>>;
 
 #[derive(PartialEq, PartialOrd)]
 enum Precedence {
@@ -28,6 +29,7 @@ pub struct Parser<'a> {
 	lexer: Lexer<'a>,
 	current: Token,
 	peek: Token,
+	main_scope: Box<Scope>,
 	current_scope: *const Scope,
 	depth: usize,
 }
@@ -38,26 +40,30 @@ impl<'a> Parser<'a> {
 		let mut lexer = Lexer::new(source);
 		let current = lexer.next();
 		let peek = lexer.next();
-		let current_scope = std::ptr::null();
+		let main_scope = Box::new(Scope {
+			parent: std::ptr::null(),
+			statements: vec![],
+		});
+		let current_scope = Box::into_raw(main_scope.clone());
 
 		Self {
 			lexer,
 			current,
 			peek,
 			current_scope,
+			main_scope,
 			depth: 0,
 		}
 	}
 
-	pub fn parse(&mut self) -> ParserResult<Vec<Statement>> {
-		let mut out = Vec::new();
-
+	pub fn parse(&mut self) -> Ast {
 		while self.current != Token::Eof {
-			out.push(self.statement()?);
+			let stmt = self.statement()?;
+			self.main_scope.statements.push(stmt);
 			self.advance();
 		}
 
-		Ok(out)
+		Ok(self.main_scope.clone())
 	}
 
 	fn statement(&mut self) -> Stmt {
@@ -156,7 +162,7 @@ impl<'a> Parser<'a> {
 		depth
 	}
 
-	fn scope(&mut self) -> ParserResult<Scope> {
+	fn scope(&mut self) -> Ast {
 		self.advance(); // skip the colon
 		let depth = self.depth();
 
@@ -167,19 +173,18 @@ impl<'a> Parser<'a> {
 		let old_depth = self.depth;
 		self.depth = depth;
 		
-		let mut scope = Scope::new(self.current_scope);
-		self.current_scope = &scope;
+		let mut scope = Box::new(Scope::new(self.current_scope));
+		self.current_scope = Box::into_raw(scope.clone());
 
 		loop {
-			scope.statements.push(self.statement()?);
+			let stmt = self.statement()?;
+			scope.statements.push(stmt);
 			self.advance();
-			if self.depth() != depth {
-				break;
-			}
+			if self.depth() != depth { break; }
 		}
 
 		// Restore
-		self.current_scope = scope.parent;
+		self.current_scope = Box::into_raw(scope.clone());
 		self.depth = old_depth;
 		Ok(scope)
 	}

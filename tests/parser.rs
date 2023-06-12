@@ -5,7 +5,9 @@ fn run(source: &str, statements: &[Statement]) {
 	let mut parser = Parser::new(source);
 	let res = parser.parse().unwrap();
 
-	res.iter().enumerate().for_each(|(i, s)| assert_eq!(s, &statements[i]));
+	res.statements.iter().enumerate().for_each(|(i, s)| {
+		assert_eq!(s, &statements[i])
+	});
 }
 
 #[test]
@@ -21,23 +23,26 @@ fn expressions() {
 #[test]
 fn functions() {
 	run("def main(duck, banana):\n\t1 + 2\n\treturn pizza", &[
-		Statement::Function("main".to_string(), vec![
-			"duck".to_string(),
-			"banana".to_string()
-		],
-		Scope {
-			parent: std::ptr::null(),
-			statements: vec![
-				Statement::Expression(Box::new(Expression::BinOp(
-					Box::new(Expression::Int(1)),
-					Box::new(Expression::Int(2)),
-					BinOp::Add		
-				))),
-				Statement::Return(Some(Box::new(
-						Expression::Ident("pizza".to_string())
-				)))
-			]
-		})
+		Statement::Function(
+			"main".to_string(),
+			vec![
+				"duck".to_string(),
+				"banana".to_string()
+			],
+			Box::new(Scope {
+				parent: std::ptr::null(),
+				statements: vec![
+					Statement::Expression(Box::new(Expression::BinOp(
+						Box::new(Expression::Int(1)),
+						Box::new(Expression::Int(2)),
+						BinOp::Add		
+					))),
+					Statement::Return(Some(Box::new(
+							Expression::Ident("pizza".to_string())
+					)))
+				]
+			})
+		),
 	])
 }
 
@@ -57,13 +62,11 @@ fn binary_expressions() {
 			)),
 			BinOp::Add
 		))),
-
 		Statement::Expression(Box::new(Expression::BinOp(
 			Box::new(Expression::Int(90)),
 			Box::new(Expression::Int(3)),
 			BinOp::Sub
 		))),
-
 		Statement::Expression(Box::new(Expression::BinOp(
 			Box::new(Expression::BinOp(
 				Box::new(Expression::Float(17.3)),
