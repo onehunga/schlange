@@ -17,7 +17,7 @@ pub fn print_statement(stmt: &Statement, depth: usize) {
 			println!("return:");
 			if let Some(expr) = expr {	print_expr(expr, depth + 1)	}
 		}
-		Statement::Pass => {},
+		Statement::Pass => { tabs(depth); println!("pass") },
 		Statement::Eof => {},
 	}
 }

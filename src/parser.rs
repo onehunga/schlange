@@ -30,7 +30,6 @@ pub struct Parser<'a> {
 	peek: Token,
 	current_scope: *const Scope,
 	depth: usize,
-	advanced: bool,
 }
 
 impl<'a> Parser<'a> {
@@ -47,7 +46,6 @@ impl<'a> Parser<'a> {
 			peek,
 			current_scope,
 			depth: 0,
-			advanced: false
 		}
 	}
 
@@ -67,11 +65,7 @@ impl<'a> Parser<'a> {
 			Token::NewLine => {
 				self.advance();
 				self.statement()
-			}
-			// Token::Indent => {
-			// 	self.advance();
-			// 	self.statement()
-			// }
+			},
 			Token::Eof => Ok(Statement::Eof),
 			Token::Illegal => Err(ParseError::IllegalToken),
 			Token::Def => self.function(),
@@ -165,7 +159,6 @@ impl<'a> Parser<'a> {
 	fn scope(&mut self) -> ParserResult<Scope> {
 		self.advance(); // skip the colon
 		let depth = self.depth();
-		println!("scope depth: {depth}");
 
 		if self.depth >= depth {
 			return Err(ParseError::ExpectedIndentation(self.current.clone()))
@@ -178,11 +171,9 @@ impl<'a> Parser<'a> {
 		self.current_scope = &scope;
 
 		loop {
-			dbg!(&self.current);
-			dbg!(&self.peek);
 			scope.statements.push(self.statement()?);
 			self.advance();
-			if self.depth() < depth {
+			if self.depth() != depth {
 				break;
 			}
 		}
@@ -235,10 +226,6 @@ impl<'a> Parser<'a> {
 	}
 
 	fn advance(&mut self) {
-		if self.advanced {
-			self.advanced = false;
-			return;
-		}
 		swap(&mut self.current, &mut self.peek);
 		self.peek = self.lexer.next();
 	}

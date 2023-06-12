@@ -1,5 +1,5 @@
 /// Binary operations
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum BinOp {
 	Add,
 	Sub,
@@ -9,7 +9,7 @@ pub enum BinOp {
 	Mod
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Statement {
 	/// args:
 	///  - name
@@ -23,7 +23,7 @@ pub enum Statement {
 	Eof
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Scope {
 	pub statements: Vec<Statement>,
 	pub parent: *const Scope,
@@ -38,7 +38,7 @@ impl Scope {
 	}
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Expression {
 	Int(u64),
 	Float(f64),
