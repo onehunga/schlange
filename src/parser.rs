@@ -1,6 +1,6 @@
 use std::mem::swap;
 
-use crate::{token::Token, lexer::Lexer, ast::{Expression, BinOp, Statement, Scope}};
+use crate::{token::Token, lexer::Lexer, ast::{Expression, BinOp, Statement}, scope::Scope};
 
 #[derive(Debug)]
 pub enum ParseError {
@@ -40,10 +40,7 @@ impl<'a> Parser<'a> {
 		let mut lexer = Lexer::new(source);
 		let current = lexer.next();
 		let peek = lexer.next();
-		let main_scope = Box::new(Scope {
-			parent: std::ptr::null(),
-			statements: vec![],
-		});
+		let main_scope = Box::<Scope>::default();
 		let current_scope = Box::into_raw(main_scope.clone());
 
 		Self {
@@ -59,7 +56,7 @@ impl<'a> Parser<'a> {
 	pub fn parse(&mut self) -> Ast {
 		while self.current != Token::Eof {
 			let stmt = self.statement()?;
-			self.main_scope.statements.push(stmt);
+			self.main_scope.push(stmt);
 			self.advance();
 		}
 
@@ -178,7 +175,7 @@ impl<'a> Parser<'a> {
 
 		loop {
 			let stmt = self.statement()?;
-			scope.statements.push(stmt);
+			scope.push(stmt);
 			self.advance();
 			if self.depth() != depth { break; }
 		}

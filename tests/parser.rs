@@ -1,12 +1,15 @@
 use schlange::parser::Parser;
-use schlange::ast::{ Statement, BinOp, Expression, Scope };
+use schlange::scope::Scope;
+use schlange::ast::{ Statement, BinOp, Expression};
 
 fn run(source: &str, statements: &[Statement]) {
 	let mut parser = Parser::new(source);
 	let res = parser.parse().unwrap();
 
-	res.statements.iter().enumerate().for_each(|(i, s)| {
-		assert_eq!(s, &statements[i])
+	assert_eq!(res.len(), statements.len());
+
+	res.into_iter().enumerate().for_each(|(i, s)| {
+		assert_eq!(s, statements[i])
 	});
 }
 
@@ -22,7 +25,7 @@ fn expressions() {
 
 #[test]
 fn functions() {
-	run("def main(duck, banana):\n\t1 + 2\n\treturn pizza", &[
+	run("def main(duck, banana):\n\t1 + 2\n\treturn pizza\n1", &[
 		Statement::Function(
 			"main".to_string(),
 			vec![
@@ -43,6 +46,7 @@ fn functions() {
 				]
 			})
 		),
+		Statement::Expression(Box::new(Expression::Int(1)))
 	])
 }
 

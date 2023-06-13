@@ -1,4 +1,4 @@
-use crate::ast::{Statement, Expression, Scope};
+use crate::{ast::{Statement, Expression}, scope::Scope};
 
 pub static mut TAB: usize = 2;
 
