@@ -1,5 +1,3 @@
-1 + 2 * 3 - 4
-
 def main():
     def abc():
         "Hello, World!"

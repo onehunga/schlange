@@ -1,146 +1,7 @@
 use crate::token::Token;
+use crate::keyword::KEYWORDS;
 
 const SPACE4: u32 = b' ' as u32 | (b' ' as u32) << 8 | (b' ' as u32) << 16 | (b' ' as u32) << 24;
-
-struct Keyword {
-	pub name: &'static [u8],
-	pub tok: Token
-}
-
-const KEYWORDS: [Keyword; 33] = [
-	Keyword {
-		name: "and".as_bytes(),
-		tok: Token::And
-	},
-	Keyword {
-		name: "as".as_bytes(),
-		tok: Token::As
-	},
-	Keyword {
-		name: "assert".as_bytes(),
-		tok: Token::Assert
-	},
-	Keyword {
-		name: "break".as_bytes(),
-		tok: Token::Break
-	},
-	Keyword {
-		name: "class".as_bytes(),
-		tok: Token::Class,
-	},
-	Keyword {
-		name: "continue".as_bytes(),
-		tok: Token::Continue,
-	},
-	Keyword {
-		name: "def".as_bytes(),
-		tok: Token::Def
-	},
-	Keyword {
-		name: "del".as_bytes(),
-		tok: Token::Del,
-	},
-	Keyword {
-		name: "elif".as_bytes(),
-		tok: Token::Elif,
-	},
-	Keyword {
-		name: "else".as_bytes(),
-		tok: Token::Else
-	},
-	Keyword {
-		name: "except".as_bytes(),
-		tok: Token::Except
-	},
-	Keyword {
-		name: "False".as_bytes(),
-		tok: Token::False
-	},
-	Keyword {
-		name: "finally".as_bytes(),
-		tok: Token::Finally
-	},
-	Keyword {
-		name: "for".as_bytes(),
-		tok: Token::For
-	},
-	Keyword {
-		name: "from".as_bytes(),
-		tok: Token::From
-	},
-	Keyword {
-		name: "global".as_bytes(),
-		tok: Token::Global
-	},
-	Keyword {
-		name: "if".as_bytes(),
-		tok: Token::If
-	},
-	Keyword {
-		name: "import".as_bytes(),
-		tok: Token::Import
-	},
-	Keyword {
-		name: "in".as_bytes(),
-		tok: Token::In
-	},
-	Keyword {
-		name: "is".as_bytes(),
-		tok: Token::Is
-	},
-	Keyword {
-		name: "lambda".as_bytes(),
-		tok: Token::Lambda
-	},
-	Keyword {
-		name: "None".as_bytes(),
-		tok: Token::None
-	},
-	Keyword {
-		name: "nonlocal".as_bytes(),
-		tok: Token::Nonlocal
-	},
-	Keyword {
-		name: "not".as_bytes(),
-		tok: Token::Not
-	},
-	Keyword {
-		name: "or".as_bytes(),
-		tok: Token::Or
-	},
-	Keyword {
-		name: "pass".as_bytes(),
-		tok: Token::Pass
-	},
-	Keyword {
-		name: "raise".as_bytes(),
-		tok: Token::Raise
-	},
-	Keyword {
-		name: "return".as_bytes(),
-		tok: Token::Return
-	},
-	Keyword {
-		name: "True".as_bytes(),
-		tok: Token::True
-	},
-	Keyword {
-		name: "try".as_bytes(),
-		tok: Token::Try
-	},
-	Keyword {
-		name: "while".as_bytes(),
-		tok: Token::While
-	},
-	Keyword {
-		name: "with".as_bytes(),
-		tok: Token::With
-	},
-	Keyword {
-		name: "yield".as_bytes(),
-		tok: Token::Yield
-	},
-];
 
 pub struct Lexer<'a> {
 	code: &'a [u8],
@@ -247,13 +108,11 @@ impl<'a> Lexer<'a> {
 				}
 
 				let ident = &self.code[start..self.read];
-				
-				for kw in KEYWORDS {
-					if kw.name == ident {
-						return kw.tok
-					}
-				}
 
+				for (string, token) in KEYWORDS {
+					if ident == string { return token }
+				}
+				
 				unsafe {
 					Token::Ident(String::from_utf8_unchecked(ident.to_vec()))
 				}
