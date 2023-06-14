@@ -1,4 +1,1 @@
-def main():
-    def scope():
-        pass
-    return scope
+x or 1 != 2 ** 7

@@ -49,13 +49,6 @@ fn print_expr(expr: &Expression, depth: usize) {
 			print_expr(lhs, depth + 1);
 			print_expr(rhs, depth + 1)
 		},
-		Expression::Logical(lhs, rhs, log) => {
-			println!("Logical");
-			tabs(depth + 1);
-			println!("kind: {log:?}");
-			print_expr(lhs, depth + 1);
-			print_expr(rhs, depth + 1)
-		},
 		Expression::BinOp(lhs, rhs, op) => {
 			println!("Binary:");
 			tabs(depth + 1);

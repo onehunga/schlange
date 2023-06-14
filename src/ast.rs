@@ -58,13 +58,9 @@ pub enum Comparison {
 	IsNot,
 	In,
 	NotIn,
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum Logical {
 	Not,
 	And,
-	Or,
+	Or
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -89,7 +85,6 @@ pub enum Expression {
 	Float(f64),
 	Ident(String),
 	String(String),
-	Logical(Expr, Expr, Logical),
 	BinOp(Expr, Expr, BinOp),
 	Comparison(Expr, Expr, Comparison),
 	Bitwise(Expr, Expr, Bitwise),

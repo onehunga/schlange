@@ -8,7 +8,6 @@ use crate::{
 		Statement,
 		Precedence,
 		Comparison,
-		Logical,
 		Unary
 	},
 	scope::Scope
@@ -241,13 +240,10 @@ impl<'a> Parser<'a> {
 
 		get_infix!(lhs, rhs, current, Comparison, 
 			Equal, NotEqual, Greater, GreaterEqual,
-			Less, LessEqual, Is, IsNot, In,	NotIn
-		);
-		
-		get_infix!(lhs, rhs, current, Logical,
+			Less, LessEqual, Is, IsNot, In,	NotIn,
 			Not, And, Or
 		);
-
+		
 		get_infix!(lhs, rhs, current, Bitwise,
 			(ShiftLeft, ShiftLeft),
 			(ShiftRight, ShiftRight),
