@@ -2,6 +2,7 @@
 2 - 70
 
 def main():
-    1 + 2
+    def scope():
+        pass
     return 1 + 3
 "ducks"
