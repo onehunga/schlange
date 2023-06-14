@@ -93,8 +93,7 @@ impl<'a> Parser<'a> {
 	}
 
 	fn function(&mut self) -> Stmt {
-		self.advance();
-		let name = match self.current.clone() {
+		let name = match self.peek.clone() {
 			Token::Ident(name) => name,
 			_ => return Err(ParseError::UnexpectedToken {
 				found: self.current.clone(),
@@ -103,8 +102,8 @@ impl<'a> Parser<'a> {
 		};
 		self.advance(); 
 
-		match self.current {
-			Token::LParen => { self.advance() }
+		match self.peek {
+			Token::LParen => { self.advance(); self.advance() }
 			_ => return Err(ParseError::UnexpectedToken {
 				found: self.current.clone(),
 				expected: vec![Token::LParen]}
