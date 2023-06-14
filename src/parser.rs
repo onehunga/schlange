@@ -241,22 +241,12 @@ impl<'a> Parser<'a> {
 		);
 
 		get_infix!(lhs, rhs, current, Comparison, 
-			(Equal, Equal),
-			(NotEqual, NotEqual),
-			(Greater, Greater),
-			(GreaterEqual, GreaterEqual),
-			(Less, Less),
-			(LessEqual, LessEqual),
-			(Is, Is),
-			(IsNot, IsNot),
-			(In, In),
-			(NotIn, NotIn)
+			Equal, NotEqual, Greater, GreaterEqual,
+			Less, LessEqual, Is, IsNot, In,	NotIn
 		);
 		
 		get_infix!(lhs, rhs, current, Logical,
-			(Not, Not),
-			(And, And),
-			(Or, Or)
+			Not, And, Or
 		);
 
 		get_infix!(lhs, rhs, current, Bitwise,
@@ -304,6 +294,17 @@ macro_rules! get_infix {
 				if $found == Token::$token {
 					return Ok(Box::new(Expression::$expr_kind(
 						$lhs, $rhs, $expr_kind::$kind
+					)));
+				}
+			)*
+		}
+	};
+	( $lhs:ident, $rhs:ident, $found:ident, $expr_kind:ident, $($token:ident), *) => {
+		{
+			$(
+				if $found == Token::$token {
+					return Ok(Box::new(Expression::$expr_kind(
+						$lhs, $rhs, $expr_kind::$token
 					)));
 				}
 			)*
