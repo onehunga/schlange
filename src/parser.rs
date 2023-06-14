@@ -8,7 +8,8 @@ use crate::{
 		Statement,
 		Precedence,
 		Comparison,
-		Logical
+		Logical,
+		Unary
 	},
 	scope::Scope
 };
@@ -207,6 +208,18 @@ impl<'a> Parser<'a> {
 			Token::Float(float) => Ok(Box::new(Expression::Float(*float))),
 			Token::Ident(ident) => Ok(Box::new(Expression::Ident(ident.clone()))),
 			Token::String(string) => Ok(Box::new(Expression::String(string.clone()))),
+			Token::UnaryMinus => {
+				self.advance();
+				Ok(Box::new(Expression::Unary(self.prefix()?, Unary::Minus)))
+			},
+			Token::UnaryPlus => {
+				self.advance();
+				Ok(Box::new(Expression::Unary(self.prefix()?, Unary::Plus)))
+			},
+			Token::UnaryNot => {
+				self.advance();
+				Ok(Box::new(Expression::Unary(self.prefix()?, Unary::Not)))
+			},
 			_ => Err(ParseError::InvalidPrefixExpression(self.current.clone(), self.peek.clone()))
 		}
 	}

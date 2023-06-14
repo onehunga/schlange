@@ -77,6 +77,13 @@ pub enum Bitwise {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+pub enum Unary {
+	Plus,
+	Minus,
+	Not,
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum Expression {
 	Int(u64),
 	Float(f64),
@@ -86,4 +93,5 @@ pub enum Expression {
 	BinOp(Expr, Expr, BinOp),
 	Comparison(Expr, Expr, Comparison),
 	Bitwise(Expr, Expr, Bitwise),
+	Unary(Expr, Unary),
 }

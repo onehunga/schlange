@@ -31,8 +31,20 @@ impl<'a> Lexer<'a> {
 			b'{' => Token::LSquirly,
 			b'}' => Token::RSquirly,
 
-			b'+' => { if is_alpha(self.peek()) { self.advance(); Token::UnaryPlus } else { Token::Plus }}
-			b'-' => { if is_alpha(self.peek()) { self.advance(); Token::UnaryMinus } else { Token::Minus }}
+			b'+' => {
+				if is_alpha(self.peek()) || is_digit(self.peek()) {
+					Token::UnaryPlus
+				} else {
+					Token::Plus
+				}
+			}
+			b'-' => {
+				if is_alpha(self.peek()) || is_digit(self.peek()) {
+					Token::UnaryMinus
+				} else {
+					Token::Minus
+				}
+			}
 			b'*' => { if self.peek() == b'*' { self.advance(); Token::Exponent } else { Token::Asterisk }}
 			b'/' => { if self.peek() == b'/' { self.advance(); Token::Floor } else { Token::Slash }}
 			b'%' => Token::Percent,

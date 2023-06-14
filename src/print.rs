@@ -29,6 +29,12 @@ fn print_expr(expr: &Expression, depth: usize) {
 		Expression::Float(float) => println!("float: {float}"),
 		Expression::Ident(ident) => println!("ident: {ident}"),
 		Expression::String(string) => println!("string: {string}"),
+		Expression::Unary(lhs, uny) => {
+			println!("Unary:");
+			tabs(depth + 1);
+			println!("kind: {uny:?}");
+			print_expr(lhs, depth + 1);
+		}
 		Expression::Bitwise(lhs, rhs, btw) => {
 			println!("Bitwise:");
 			tabs(depth + 1);
@@ -37,21 +43,21 @@ fn print_expr(expr: &Expression, depth: usize) {
 			print_expr(rhs, depth + 1)
 		}
 		Expression::Comparison(lhs, rhs, cmp) => {
-			println!("comparison:");
+			println!("Comparison:");
 			tabs(depth + 1);
 			println!("kind: {cmp:?}");
 			print_expr(lhs, depth + 1);
 			print_expr(rhs, depth + 1)
 		},
 		Expression::Logical(lhs, rhs, log) => {
-			println!("logical");
+			println!("Logical");
 			tabs(depth + 1);
 			println!("kind: {log:?}");
 			print_expr(lhs, depth + 1);
 			print_expr(rhs, depth + 1)
 		},
 		Expression::BinOp(lhs, rhs, op) => {
-			println!("binary:");
+			println!("Binary:");
 			tabs(depth + 1);
 			println!("operator: {op:?}");
 			print_expr(lhs, depth + 1);
