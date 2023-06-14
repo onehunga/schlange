@@ -230,29 +230,44 @@ impl<'a> Parser<'a> {
 		self.advance();
 		let rhs = self.expression(prec)?;
 
-		match current {
-			Token::Plus | Token::Minus | Token::Asterisk | Token::Percent |
-			Token::Slash | Token::Exponent | Token::Floor => {
-				let op = self.get_op(&current)?;
-				Ok(Box::new(Expression::BinOp(lhs, rhs, op)))
-			},
-			Token::Equal | Token::NotEqual | Token::Greater | Token::GreaterEqual |
-			Token::Less | Token::LessEqual | Token::Is | Token::IsNot | Token::In | 
-			Token::NotIn => {
-				let cmp = self.get_cmp(&current)?;
-				Ok(Box::new(Expression::Comparison(lhs, rhs, cmp)))
-			},
-			Token::Not | Token::And | Token::Or => {
-				let log = self.get_log(&current)?;
-				Ok(Box::new(Expression::Logical(lhs, rhs, log)))
-			},
-			Token::ShiftLeft | Token::ShiftRight | Token::Ampersand |
-			Token::Caret | Token::Line => {
-				let btw = self.get_btw(&current)?;
-				Ok(Box::new(Expression::Bitwise(lhs, rhs, btw)))
-			}
-			_ => Err(ParseError::InvalidExpressionKind(self.current.clone()))
-		}
+		get_infix!(lhs, rhs, current, BinOp,
+			(Plus, Add),
+			(Minus, Sub),
+			(Asterisk, Mul),
+			(Slash, Div),
+			(Floor, Floor),
+			(Exponent, Pow),
+			(Percent, Mod)
+		);
+
+		get_infix!(lhs, rhs, current, Comparison, 
+			(Equal, Equal),
+			(NotEqual, NotEqual),
+			(Greater, Greater),
+			(GreaterEqual, GreaterEqual),
+			(Less, Less),
+			(LessEqual, LessEqual),
+			(Is, Is),
+			(IsNot, IsNot),
+			(In, In),
+			(NotIn, NotIn)
+		);
+		
+		get_infix!(lhs, rhs, current, Logical,
+			(Not, Not),
+			(And, And),
+			(Or, Or)
+		);
+
+		get_infix!(lhs, rhs, current, Bitwise,
+			(ShiftLeft, ShiftLeft),
+			(ShiftRight, ShiftRight),
+			(Ampersand, And),
+			(Caret, Xor),
+			(Line, Or)
+		);
+		
+		Err(ParseError::InvalidExpressionKind(current))
 	}
 
 	fn advance(&mut self) {
@@ -280,75 +295,22 @@ impl<'a> Parser<'a> {
 			_ => Precedence::None
 		}
 	}
+}
 
-	fn get_op(&mut self, token: &Token) -> ParserResult<BinOp> {
-		Ok(match token {
-			Token::Plus => BinOp::Add,
-			Token::Minus => BinOp::Sub,
-			Token::Asterisk => BinOp::Mul,
-			Token::Slash => BinOp::Div,
-			Token::Floor => BinOp::Floor,
-			Token::Exponent => BinOp::Pow,
-			Token::Percent => BinOp::Mod,
-			_ => return Err(ParseError::UnexpectedToken {
-				found: token.clone(),
-				expected: vec![
-					Token::Plus, Token::Minus, Token::Asterisk,
-					Token::Slash, Token::Floor, Token::Exponent, Token::Percent
-				]
-			})
-		})
-	}
+// get_infix!(lhs, rhs, current, [(Token::Minus, BinOp::Min)])
 
-	fn get_cmp(&mut self, token: &Token) -> ParserResult<Comparison> {
-		Ok(match token {
-			Token::Equal => Comparison::Equal,
-			Token::NotEqual => Comparison::NotEqual,
-			Token::Greater => Comparison::Greater,
-			Token::GreaterEqual => Comparison::GreaterEqual,
-			Token::Less => Comparison::Less,
-			Token::LessEqual => Comparison::LessEqual,
-			Token::Is => Comparison::Is,
-			Token::IsNot => Comparison::IsNot,
-			Token::In => Comparison::In,
-			Token::NotIn => Comparison::NotIn,
-			_ => return Err(ParseError::UnexpectedToken {
-				found: token.clone(),
-				expected: vec![
-					Token::Equal, Token::NotEqual, Token::Greater,
-					Token::GreaterEqual, Token::Less, Token::LessEqual,
-					Token::Is, Token::IsNot, Token::In, Token::NotIn
-				]
-			})
-		})
-	}
-
-	fn get_log(&mut self, token: &Token) -> ParserResult<Logical> {
-		Ok(match token {
-			Token::Not => Logical::Not,
-			Token::And => Logical::And,
-			Token::Or => Logical::Or,
-			_ => return Err(ParseError::UnexpectedToken {
-				found: token.clone(),
-				expected: vec![Token::Not, Token::And, Token::Or]
-			})
-		})
-	}
-
-	fn get_btw(&mut self, token: &Token) -> ParserResult<Bitwise> {
-		Ok(match token {
-			Token::ShiftLeft => Bitwise::ShiftLeft,
-			Token::ShiftRight => Bitwise::ShiftRight,
-			Token::Ampersand => Bitwise::And,
-			Token::Caret => Bitwise::Xor,
-			Token::Line => Bitwise::Or,
-			_ => return Err(ParseError::UnexpectedToken {
-				found: token.clone(),
-				expected: vec![
-					Token::ShiftLeft, Token::ShiftRight,
-					Token::Ampersand, Token::Caret, Token::Line
-				]
-			})
-		})
+macro_rules! get_infix {
+	( $lhs:ident , $rhs:ident, $found:ident, $expr_kind:ident, $(($token:ident , $kind:ident)), *) => {
+		{
+			$(
+				if $found == Token::$token {
+					return Ok(Box::new(Expression::$expr_kind(
+						$lhs, $rhs, $expr_kind::$kind
+					)));
+				}
+			)*
+		}
 	}
 }
+
+pub(crate) use get_infix;
