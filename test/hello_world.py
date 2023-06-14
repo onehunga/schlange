@@ -1,1 +1,5 @@
-x or 1 != 2 ** 7
+def main():
+    def foo():
+        pass
+    pass
+return 1 + 2

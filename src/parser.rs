@@ -78,11 +78,13 @@ impl<'a> Parser<'a> {
 			Token::Def => self.function(),
 			Token::Pass => Ok(Statement::Pass),
 			Token::Return => {
-				let expr = match self.peek {
+				self.advance();
+				let expr = match self.current {
 					Token::Eof | Token::NewLine => None,
 					_ => {
+						let expr = self.expression(Precedence::None)?;
 						self.advance();
-						Some(self.expression(Precedence::None)?)
+						Some(expr)
 					}
 				};
 				Ok(Statement::Return(expr))
