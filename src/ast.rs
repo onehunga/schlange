@@ -1,5 +1,7 @@
 use crate::scope::Scope;
 
+type Expr = Box<Expression>;
+
 #[derive(PartialEq, PartialOrd)]
 pub enum Precedence {
 	None,
@@ -36,8 +38,8 @@ pub enum Statement {
 	///  - name
 	///  - function params
 	Function(String, Vec<String>, Box<Scope>),
-	Expression(Box<Expression>),
-	Return(Option<Box<Expression>>),
+	Expression(Expr),
+	Return(Option<Expr>),
 	Pass,
 
 	/// really stupid fix for a stupid problem
@@ -66,12 +68,22 @@ pub enum Logical {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+pub enum Bitwise {
+	ShiftLeft,
+	ShiftRight,
+	And,
+	Xor,
+	Or
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum Expression {
 	Int(u64),
 	Float(f64),
 	Ident(String),
 	String(String),
-	Logical(Box<Expression>, Box<Expression>, Logical),
-	BinOp(Box<Expression>, Box<Expression>, BinOp),
-	Comparison(Box<Expression>, Box<Expression>, Comparison),
+	Logical(Expr, Expr, Logical),
+	BinOp(Expr, Expr, BinOp),
+	Comparison(Expr, Expr, Comparison),
+	Bitwise(Expr, Expr, Bitwise),
 }

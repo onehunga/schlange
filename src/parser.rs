@@ -2,6 +2,7 @@ use crate::{
 	token::Token,
 	lexer::Lexer,
 	ast::{
+		Bitwise,
 		Expression,
 		BinOp,
 		Statement,
@@ -232,6 +233,11 @@ impl<'a> Parser<'a> {
 				let log = self.get_log(&current)?;
 				Ok(Box::new(Expression::Logical(lhs, rhs, log)))
 			},
+			Token::ShiftLeft | Token::ShiftRight | Token::Ampersand |
+			Token::Caret | Token::Line => {
+				let btw = self.get_btw(&current)?;
+				Ok(Box::new(Expression::Bitwise(lhs, rhs, btw)))
+			}
 			_ => Err(ParseError::InvalidExpressionKind(self.current.clone()))
 		}
 	}
@@ -272,7 +278,7 @@ impl<'a> Parser<'a> {
 			Token::Exponent => BinOp::Pow,
 			Token::Percent => BinOp::Mod,
 			_ => return Err(ParseError::UnexpectedToken {
-				found: self.current.clone(),
+				found: token.clone(),
 				expected: vec![
 					Token::Plus, Token::Minus, Token::Asterisk,
 					Token::Slash, Token::Floor, Token::Exponent, Token::Percent
@@ -294,7 +300,7 @@ impl<'a> Parser<'a> {
 			Token::In => Comparison::In,
 			Token::NotIn => Comparison::NotIn,
 			_ => return Err(ParseError::UnexpectedToken {
-				found: self.current.clone(),
+				found: token.clone(),
 				expected: vec![
 					Token::Equal, Token::NotEqual, Token::Greater,
 					Token::GreaterEqual, Token::Less, Token::LessEqual,
@@ -310,8 +316,25 @@ impl<'a> Parser<'a> {
 			Token::And => Logical::And,
 			Token::Or => Logical::Or,
 			_ => return Err(ParseError::UnexpectedToken {
-				found: self.current.clone(),
+				found: token.clone(),
 				expected: vec![Token::Not, Token::And, Token::Or]
+			})
+		})
+	}
+
+	fn get_btw(&mut self, token: &Token) -> ParserResult<Bitwise> {
+		Ok(match token {
+			Token::ShiftLeft => Bitwise::ShiftLeft,
+			Token::ShiftRight => Bitwise::ShiftRight,
+			Token::Ampersand => Bitwise::And,
+			Token::Caret => Bitwise::Xor,
+			Token::Line => Bitwise::Or,
+			_ => return Err(ParseError::UnexpectedToken {
+				found: token.clone(),
+				expected: vec![
+					Token::ShiftLeft, Token::ShiftRight,
+					Token::Ampersand, Token::Caret, Token::Line
+				]
 			})
 		})
 	}

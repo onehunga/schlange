@@ -29,6 +29,13 @@ fn print_expr(expr: &Expression, depth: usize) {
 		Expression::Float(float) => println!("float: {float}"),
 		Expression::Ident(ident) => println!("ident: {ident}"),
 		Expression::String(string) => println!("string: {string}"),
+		Expression::Bitwise(lhs, rhs, btw) => {
+			println!("Bitwise:");
+			tabs(depth + 1);
+			println!("kind: {btw:?}");
+			print_expr(lhs, depth + 1);
+			print_expr(rhs, depth + 1)
+		}
 		Expression::Comparison(lhs, rhs, cmp) => {
 			println!("comparison:");
 			tabs(depth + 1);
