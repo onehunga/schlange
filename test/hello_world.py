@@ -1,1 +1,1 @@
-duck is not 2 == 9 != 90 ** 7 and 2 == 3
+duck is not 2 == 9 != 90 ** 7 and 2 == 3 or 2 not 4

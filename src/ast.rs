@@ -71,11 +71,6 @@ pub enum Expression {
 	Float(f64),
 	Ident(String),
 	String(String),
-
-	/// args:
-	///  - lhs
-	///  - rhs
-	///  - op
 	Logical(Box<Expression>, Box<Expression>, Logical),
 	BinOp(Box<Expression>, Box<Expression>, BinOp),
 	Comparison(Box<Expression>, Box<Expression>, Comparison),

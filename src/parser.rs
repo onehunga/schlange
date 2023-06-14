@@ -1,6 +1,16 @@
-use std::mem::swap;
-
-use crate::{token::Token, lexer::Lexer, ast::{Expression, BinOp, Statement, Precedence, Comparison, Logical}, scope::Scope};
+use crate::{
+	token::Token,
+	lexer::Lexer,
+	ast::{
+		Expression,
+		BinOp,
+		Statement,
+		Precedence,
+		Comparison,
+		Logical
+	},
+	scope::Scope
+};
 
 #[derive(Debug)]
 pub enum ParseError {
@@ -182,7 +192,7 @@ impl<'a> Parser<'a> {
 	fn expression(&mut self, prec: Precedence) -> Expr {
 		let mut left = self.prefix()?;
 
-		while prec <= self.peek_prec() && self.peek != Token::NewLine && self.peek != Token::Eof {
+		while prec <= self.prec(self.peek.clone()) && self.peek != Token::NewLine && self.peek != Token::Eof {
 			self.advance();
 			left = self.infix(left)?;
 		}
@@ -201,51 +211,38 @@ impl<'a> Parser<'a> {
 	}
 
 	fn infix(&mut self, lhs: Box<Expression>) -> Expr {
-		match self.current {
+		let prec = self.prec(self.current.clone());
+		let current = self.current.clone();
+		self.advance();
+		let rhs = self.expression(prec)?;
+
+		match current {
 			Token::Plus | Token::Minus | Token::Asterisk | Token::Percent |
-			Token::Slash | Token::Exponent | Token::Floor => self.binary(lhs),
+			Token::Slash | Token::Exponent | Token::Floor => {
+				let op = self.get_op(&current)?;
+				Ok(Box::new(Expression::BinOp(lhs, rhs, op)))
+			},
 			Token::Equal | Token::NotEqual | Token::Greater | Token::GreaterEqual |
 			Token::Less | Token::LessEqual | Token::Is | Token::IsNot | Token::In | 
-			Token::NotIn => self.comparison(lhs),
-			Token::Not | Token::And | Token::Or => self.logical(lhs),
+			Token::NotIn => {
+				let cmp = self.get_cmp(&current)?;
+				Ok(Box::new(Expression::Comparison(lhs, rhs, cmp)))
+			},
+			Token::Not | Token::And | Token::Or => {
+				let log = self.get_log(&current)?;
+				Ok(Box::new(Expression::Logical(lhs, rhs, log)))
+			},
 			_ => Err(ParseError::InvalidExpressionKind(self.current.clone()))
 		}
 	}
 
-	fn logical(&mut self, lhs: Box<Expression>) -> Expr {
-		let prec = self.current_prec();
-		let log = self.get_log()?;
-		self.advance();
-
-		let rhs = self.expression(prec)?;
-		Ok(Box::new(Expression::Logical(lhs, rhs, log)))
-	}
-
-	fn comparison(&mut self, lhs: Box<Expression>) -> Expr {
-		let prec = self.current_prec();
-		let cmp = self.get_cmp()?;
-		self.advance();
-
-		let rhs = self.expression(prec)?;
-		Ok(Box::new(Expression::Comparison(lhs, rhs, cmp)))
-	}
-
-	fn binary(&mut self, lhs: Box<Expression>) -> Expr {
-		let prec = self.current_prec();
-		let op = self.get_op()?;
-		self.advance();
-
-		let rhs = self.expression(prec)?;
-		Ok(Box::new(Expression::BinOp(lhs, rhs, op)))
-	}
-
 	fn advance(&mut self) {
-		swap(&mut self.current, &mut self.peek);
+		std::mem::swap(&mut self.current, &mut self.peek);
 		self.peek = self.lexer.next_token();
 	}
 
-	fn current_prec(&mut self) -> Precedence {
-		match self.current {
+	fn prec(&mut self, token: Token) -> Precedence {
+		match token {
 			Token::Exponent => Precedence::Exponent,
 			Token::UnaryPlus | Token::UnaryMinus | Token::UnaryNot => Precedence::Unary,
 			Token::Asterisk | Token::Slash | Token::Floor | Token::Percent => Precedence::Prod,
@@ -265,29 +262,8 @@ impl<'a> Parser<'a> {
 		}
 	}
 
-	fn peek_prec(&mut self) -> Precedence {
-		match self.peek {
-			Token::Exponent => Precedence::Exponent,
-			Token::UnaryPlus | Token::UnaryMinus | Token::UnaryNot => Precedence::Unary,
-			Token::Asterisk | Token::Slash | Token::Floor | Token::Percent => Precedence::Prod,
-			Token::Plus | Token::Minus => Precedence::Sum,
-			Token::ShiftLeft | Token::ShiftRight => Precedence::BitwiseShift,
-			Token::Ampersand => Precedence::BitwiseAnd,
-			Token::Caret => Precedence::BitwiseXor,
-			Token::Line => Precedence::BitwiseOr,
-			Token::Equal | Token::NotEqual | Token::Greater | Token::GreaterEqual | 
-			Token::Less | Token::LessEqual | Token::Is | Token::In |
-			Token::IsNot | Token::NotIn => Precedence::Comparison, 
-			Token::Not => Precedence::LogicalNot,
-			Token::And => Precedence::LogicalAnd,
-			Token::Or => Precedence::LogicalOr,
-			
-			_ => Precedence::None
-		}
-	}
-
-	fn get_op(&mut self) -> ParserResult<BinOp> {
-		Ok(match self.current {
+	fn get_op(&mut self, token: &Token) -> ParserResult<BinOp> {
+		Ok(match token {
 			Token::Plus => BinOp::Add,
 			Token::Minus => BinOp::Sub,
 			Token::Asterisk => BinOp::Mul,
@@ -305,8 +281,8 @@ impl<'a> Parser<'a> {
 		})
 	}
 
-	fn get_cmp(&mut self) -> ParserResult<Comparison> {
-		Ok(match self.current {
+	fn get_cmp(&mut self, token: &Token) -> ParserResult<Comparison> {
+		Ok(match token {
 			Token::Equal => Comparison::Equal,
 			Token::NotEqual => Comparison::NotEqual,
 			Token::Greater => Comparison::Greater,
@@ -328,8 +304,8 @@ impl<'a> Parser<'a> {
 		})
 	}
 
-	fn get_log(&mut self) -> ParserResult<Logical> {
-		Ok(match self.current {
+	fn get_log(&mut self, token: &Token) -> ParserResult<Logical> {
+		Ok(match token {
 			Token::Not => Logical::Not,
 			Token::And => Logical::And,
 			Token::Or => Logical::Or,
