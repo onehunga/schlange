@@ -1,11 +1,12 @@
 use std::mem::swap;
 
-use crate::{token::Token, lexer::Lexer, ast::{Expression, BinOp, Statement, Precedence}, scope::Scope};
+use crate::{token::Token, lexer::Lexer, ast::{Expression, BinOp, Statement, Precedence, Comparison}, scope::Scope};
 
 #[derive(Debug)]
 pub enum ParseError {
 	Expression,
-	InvalidOperator,
+	InvalidOperator(Token),
+	InvalidComparison(Token),
 	InvalidExpressionKind(Token),
 	InvalidPrefixExpression(Token, Token),
 	UnexpectedToken { found: Token, expected: Vec<Token> },
@@ -203,8 +204,21 @@ impl<'a> Parser<'a> {
 		match self.current {
 			Token::Plus | Token::Minus | Token::Asterisk | Token::Percent |
 			Token::Slash | Token::Exponent | Token::Floor => self.binary(lhs),
+			Token::Equal | Token::NotEqual | Token::Greater | Token::GreaterEqual |
+			Token::Less | Token::LessEqual | Token::Is | Token::IsNot | Token::In | 
+			Token::NotIn => self.comparison(lhs),
 			_ => Err(ParseError::InvalidExpressionKind(self.current.clone()))
 		}
+	}
+
+	fn comparison(&mut self, lhs: Box<Expression>) -> Expr {
+		let prec = self.current_prec();
+		let cmp = self.get_cmp()?;
+		self.advance();
+
+		let rhs = self.expression(prec)?;
+
+		Ok(Box::new(Expression::Comparison(lhs, rhs, cmp)))
 	}
 
 	fn binary(&mut self, lhs: Box<Expression>) -> Expr {
@@ -265,15 +279,31 @@ impl<'a> Parser<'a> {
 	}
 
 	fn get_op(&mut self) -> ParserResult<BinOp> {
-		match self.current {
-			Token::Plus => Ok(BinOp::Add),
-			Token::Minus => Ok(BinOp::Sub),
-			Token::Asterisk => Ok(BinOp::Mul),
-			Token::Slash => Ok(BinOp::Div),
-			Token::Floor => Ok(BinOp::Floor),
-			Token::Exponent => Ok(BinOp::Pow),
-			Token::Percent => Ok(BinOp::Mod),
-			_ => Err(ParseError::InvalidOperator)
-		}
+		Ok(match self.current {
+			Token::Plus => BinOp::Add,
+			Token::Minus => BinOp::Sub,
+			Token::Asterisk => BinOp::Mul,
+			Token::Slash => BinOp::Div,
+			Token::Floor => BinOp::Floor,
+			Token::Exponent => BinOp::Pow,
+			Token::Percent => BinOp::Mod,
+			_ => return Err(ParseError::InvalidOperator(self.current.clone()))
+		})
+	}
+
+	fn get_cmp(&mut self) -> ParserResult<Comparison> {
+		Ok(match self.current {
+			Token::Equal => Comparison::Equal,
+			Token::NotEqual => Comparison::NotEqual,
+			Token::Greater => Comparison::Greater,
+			Token::GreaterEqual => Comparison::GreaterEqual,
+			Token::Less => Comparison::Less,
+			Token::LessEqual => Comparison::LessEqual,
+			Token::Is => Comparison::Is,
+			Token::IsNot => Comparison::IsNot,
+			Token::In => Comparison::In,
+			Token::NotIn => Comparison::NotIn,
+			_ => return Err(ParseError::InvalidComparison(self.current.clone()))
+		})
 	}
 }

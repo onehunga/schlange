@@ -37,7 +37,6 @@ pub enum Statement {
 	///  - function params
 	Function(String, Vec<String>, Box<Scope>),
 	Expression(Box<Expression>),
-	Comparison(Box<Expression>, Box<Comparison>, Box<Expression>),
 	Return(Option<Box<Expression>>),
 	Pass,
 
@@ -71,4 +70,5 @@ pub enum Expression {
 	///  - rhs
 	///  - op
 	BinOp(Box<Expression>, Box<Expression>, BinOp),
+	Comparison(Box<Expression>, Box<Expression>, Comparison),
 }

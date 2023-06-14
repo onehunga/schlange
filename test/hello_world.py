@@ -1,8 +1,1 @@
-1 // 2 - 3 ** 70 / 4 % 3
-2 + 70
-
-def main():
-    def scope():
-        pass
-    return 1 + 3
-"ducks"
+duck is not 2 == 9 != 90 ** 7

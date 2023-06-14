@@ -12,7 +12,6 @@ pub fn print_statement(stmt: &Statement, depth: usize) {
 	match stmt {
 		Statement::Function(name, parameters, scope) => print_function(name, parameters, scope, depth),
 		Statement::Expression(expr) => print_expr(expr, depth),
-		Statement::Comparison(lhs, comp, rhs) => print_comp(lhs, comp, rhs, depth),
 		Statement::Return(expr) => {
 			tabs(depth);
 			println!("return:");
@@ -30,6 +29,7 @@ fn print_expr(expr: &Expression, depth: usize) {
 		Expression::Float(float) => println!("float: {float}"),
 		Expression::Ident(ident) => println!("ident: {ident}"),
 		Expression::String(string) => println!("string: {string}"),
+		Expression::Comparison(lhs, rhs, cmp) => print_comp(lhs, rhs, cmp, depth),
 		Expression::BinOp(lhs, rhs, op) => {
 			println!("binary:");
 				
@@ -42,11 +42,11 @@ fn print_expr(expr: &Expression, depth: usize) {
 	};
 }
 
-fn print_comp(lhs: &Expression, comp: &Comparison, rhs: &Expression, depth: usize) {
+fn print_comp(lhs: &Expression, rhs: &Expression, cmp: &Comparison, depth: usize) {
 	tabs(depth);
 	println!("comparison:");
 	tabs(depth + 1);
-	println!("kind: {comp:?}");
+	println!("kind: {cmp:?}");
 	print_expr(lhs, depth + 1);
 	print_expr(rhs, depth + 1)
 
