@@ -1,10 +1,7 @@
+1 + 2 - 3 - 70 / 4
+2 - 70
+
 def main():
-    def abc():
-        "Hello, World!"
-        pass
-    return
-
-    1
-    return 1 + 1
-
-"Ducks are cool"
+    1 + 2
+    return 1 + 3
+"ducks"

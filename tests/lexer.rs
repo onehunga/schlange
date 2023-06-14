@@ -2,11 +2,11 @@ use schlange::lexer::Lexer;
 use schlange::token::Token;
 
 fn run(src: &str, tokens: &[Token]) {
-	let mut lex = Lexer::new(src);
+	let lexer = Lexer::new(src);
 
-	for tok in tokens {
-		assert_eq!(*tok, lex.next());
-	}
+	lexer.enumerate().for_each(|(i, t)| {
+		assert_eq!(t, tokens[i])
+	})
 }
 
 #[test]
@@ -30,10 +30,10 @@ fn simple_token() {
 #[test]
 fn double_tokens() {
 	run("= == ! != > >= < <=", &[
+		Token::Assign,
 		Token::Equal,
-		Token::EqualEqual,
 		Token::Bang,
-		Token::BangEqual,
+		Token::NotEqual,
 		Token::Greater,
 		Token::GreaterEqual,
 		Token::Less,

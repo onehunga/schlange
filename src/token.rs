@@ -1,32 +1,50 @@
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
-	LParen,
-	RParen,
-	LBracket,
-	RBracket,
+	LParen,          // (
+	RParen,          // )
+	LBracket,        // [
+	RBracket,        // ]
+	LSquirly,        // {
+	RSquirly,        // }
 
-	Plus,
-	Minus,
-	Asterisk,
-	Slash,
+	Plus,            // +
+	Minus,           // -
+	Asterisk,        // *
+	Exponent,        // **
+	Slash,           // /
+	Floor,           // //
+	Percent,         // %
 
-	Dot,
-	Comma,
-	Colon,
+	UnaryPlus,       // +...
+	UnaryMinus,      // -...
+	UnaryNot,        // ~...
 
-	Equal,
-	EqualEqual,
-	Bang,
-	BangEqual,
-	Greater,
-	GreaterEqual,
-	Less,
-	LessEqual,
+	Dot,             // . 
+	Comma,           // ,
+	Colon,           // :
 
-	String(String),
-	Ident(String),
-	Int(u64),
-	Float(f64),
+	Assign,          // =
+	Equal,           // ==
+	Bang,            // !
+	NotEqual,        // !=
+	Greater,         // >
+	GreaterEqual,    // >=
+	Less,            // <
+	LessEqual,       // <=
+
+	ShiftLeft,       // <<
+	ShiftRight,      // >>
+
+	Ampersand,       // &
+	Caret,           // ^
+	Line,            // |
+
+
+	// Values
+	String(String),  // "..."
+	Ident(String),   // ...
+	Int(u64),        // 1
+	Float(f64),      // 1.0
 
 	// keywords
 	False,
@@ -65,10 +83,10 @@ pub enum Token {
 	With,
 	Yield,
 
-	Indent,
-	NewLine,
+	// Indentation
+	Indent,          // \t or '    '
+	NewLine,         // \n
 
 	Illegal,
-	Error(String),
-	Eof
+	Eof,
 }

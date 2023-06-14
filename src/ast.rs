@@ -1,5 +1,12 @@
 use crate::scope::Scope;
 
+#[derive(PartialEq, PartialOrd)]
+pub enum Precedence {
+	None,
+	Sum,
+	Prod,
+}
+
 /// Binary operations
 #[derive(Debug, PartialEq, Clone)]
 pub enum BinOp {

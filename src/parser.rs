@@ -1,6 +1,6 @@
 use std::mem::swap;
 
-use crate::{token::Token, lexer::Lexer, ast::{Expression, BinOp, Statement}, scope::Scope};
+use crate::{token::Token, lexer::Lexer, ast::{Expression, BinOp, Statement, Precedence}, scope::Scope};
 
 #[derive(Debug)]
 pub enum ParseError {
@@ -18,13 +18,6 @@ pub type Stmt = ParserResult<Statement>;
 pub type Expr = ParserResult<Box<Expression>>;
 pub type Ast = ParserResult<Box<Scope>>;
 
-#[derive(PartialEq, PartialOrd)]
-enum Precedence {
-	None,
-	Sum,
-	Prod,
-}
-
 pub struct Parser<'a> {
 	lexer: Lexer<'a>,
 	current: Token,
@@ -38,8 +31,8 @@ impl<'a> Parser<'a> {
 
 	pub fn new(source: &'a str) -> Self {
 		let mut lexer = Lexer::new(source);
-		let current = lexer.next();
-		let peek = lexer.next();
+		let current = lexer.next_token();
+		let peek = lexer.next_token();
 		let main_scope = Box::<Scope>::default();
 		let current_scope = Box::into_raw(main_scope.clone());
 
@@ -57,7 +50,6 @@ impl<'a> Parser<'a> {
 		while self.current != Token::Eof {
 			let stmt = self.statement()?;
 			self.main_scope.push(stmt);
-			self.advance();
 		}
 
 		Ok(self.main_scope.clone())
@@ -65,8 +57,8 @@ impl<'a> Parser<'a> {
 
 	fn statement(&mut self) -> Stmt {
 		match self.current {
-			Token::NewLine => {
-				self.advance();
+			Token::NewLine | Token::Indent => {
+				self.depth = self.depth();
 				self.statement()
 			},
 			Token::Eof => Ok(Statement::Eof),
@@ -78,12 +70,13 @@ impl<'a> Parser<'a> {
 					Token::Eof | Token::NewLine => None,
 					_ => {
 						self.advance();
+						dbg!(&self.current, &self.peek);
 						Some(self.expression(Precedence::None)?)
 					}
 				};
 				Ok(Statement::Return(expr))
 			},
-			_ => Ok(Statement::Expression(self.expression(Precedence::None)?))
+			_ => { let expr = self.expression(Precedence::None)?; self.advance(); Ok(Statement::Expression(expr)) }
 		}
 	}
 
@@ -136,7 +129,7 @@ impl<'a> Parser<'a> {
 		}
 
 		match self.current {
-			Token::Colon => Ok(Statement::Function(name, parameters, self.scope()?)),
+			Token::Colon => { self.advance(); Ok(Statement::Function(name, parameters, self.scope()?)) },
 			_ => Err(ParseError::UnexpectedToken {
 				found: self.current.clone(),
 				expected: vec![Token::Colon]
@@ -144,23 +137,7 @@ impl<'a> Parser<'a> {
 		}
 	}
 
-	fn depth(&mut self) -> usize {
-		let mut depth = 0;
-
-		loop {
-			match self.current {
-				Token::NewLine => depth = 0,
-				Token::Indent => depth += 1,
-				_ => break,
-			}
-
-			self.advance();
-		}
-		depth
-	}
-
 	fn scope(&mut self) -> Ast {
-		self.advance(); // skip the colon
 		let depth = self.depth();
 
 		if self.depth >= depth {
@@ -176,14 +153,30 @@ impl<'a> Parser<'a> {
 		loop {
 			let stmt = self.statement()?;
 			scope.push(stmt);
-			self.advance();
-			if self.depth() != depth { break; }
+			if self.depth() < depth { break; }
 		}
+
+		self.advance();
 
 		// Restore
 		self.current_scope = Box::into_raw(scope.clone());
 		self.depth = old_depth;
 		Ok(scope)
+	}
+
+	fn depth(&mut self) -> usize {
+		let mut depth = 0;
+
+		loop {
+			match self.current {
+				Token::NewLine => depth = 0,
+				Token::Indent => depth += 1,
+				_ => break,
+			}
+
+			self.advance();
+		}
+		depth
 	}
 
 	fn expression(&mut self, prec: Precedence) -> Expr {
@@ -229,7 +222,7 @@ impl<'a> Parser<'a> {
 
 	fn advance(&mut self) {
 		swap(&mut self.current, &mut self.peek);
-		self.peek = self.lexer.next();
+		self.peek = self.lexer.next_token();
 	}
 
 	fn current_prec(&mut self) -> Precedence {

@@ -1,6 +1,14 @@
 use crate::token::Token;
 
-pub const KEYWORDS: [(&[u8], Token); 35] = [
+pub fn lookup(ident: &[u8]) -> Option<Token> {
+	for (word, token) in KEYWORDS {
+		if word == ident { return Some(token); }
+	}
+
+	None
+}
+
+const KEYWORDS: [(&[u8], Token); 35] = [
 	(b"False", Token::False),
 	(b"None", Token::None),
 	(b"True", Token::True),
