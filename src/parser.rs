@@ -297,8 +297,6 @@ impl<'a> Parser<'a> {
 	}
 }
 
-// get_infix!(lhs, rhs, current, [(Token::Minus, BinOp::Min)])
-
 macro_rules! get_infix {
 	( $lhs:ident , $rhs:ident, $found:ident, $expr_kind:ident, $(($token:ident , $kind:ident)), *) => {
 		{
