@@ -69,6 +69,14 @@ impl<'a> Lexer<'a> {
 				} else { self.next_token() }
 			}}
 
+			b'\\' => { // there will be no \ or \n
+				let next = self.next_token();
+				match next {
+					Token::NewLine => self.next_token(),
+					_ => next
+				}
+			}
+
 			b'#' => { while self.ch != b'\n' && self.ch != b'\0' { self.advance() } self.next_token()}
 			b'\0' => { Token::Eof }
 
