@@ -8,7 +8,7 @@ pub fn lookup(ident: &[u8]) -> Option<Token> {
 	None
 }
 
-const KEYWORDS: [(&[u8], Token); 35] = [
+const KEYWORDS: [(&[u8], Token); 37] = [
 	(b"False", Token::False),
 	(b"None", Token::None),
 	(b"True", Token::True),
@@ -33,9 +33,11 @@ const KEYWORDS: [(&[u8], Token); 35] = [
 	(b"import", Token::Import),
 	(b"in", Token::In),
 	(b"is", Token::Is),
+	(b"is not", Token::IsNot),
 	(b"lambda", Token::Lambda),
 	(b"nonlocal", Token::Nonlocal),
 	(b"not", Token::Not),
+	(b"not in", Token::NotIn),
 	(b"or", Token::Or),
 	(b"pass", Token::Pass),
 	(b"raise", Token::Raise),

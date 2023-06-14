@@ -3,8 +3,19 @@ use crate::scope::Scope;
 #[derive(PartialEq, PartialOrd)]
 pub enum Precedence {
 	None,
-	Sum,
-	Prod,
+	LogicalOr,       // or
+	LogicalAnd,      // and
+	LogicalNot,      // not
+	Comparison,      // ==, !=, >, >=, <, <=, is, is not, in, not in
+	BitwiseOr,       // |
+	BitwiseXor,      // ^
+	BitwiseAnd,      // &
+	BitwiseShift,    // <<, >>
+	Sum,             // +, -
+	Prod,            // *, /, //, %
+	Unary,           // +x, -x, ~x
+	Exponent,        // **
+	Parentheses,     // ()
 }
 
 /// Binary operations
@@ -15,7 +26,8 @@ pub enum BinOp {
 	Mul,
 	Div,
 	Pow,
-	Mod
+	Mod,
+	Floor,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -25,11 +37,26 @@ pub enum Statement {
 	///  - function params
 	Function(String, Vec<String>, Box<Scope>),
 	Expression(Box<Expression>),
+	Comparison(Box<Expression>, Box<Comparison>, Box<Expression>),
 	Return(Option<Box<Expression>>),
 	Pass,
 
 	/// really stupid fix for a stupid problem
 	Eof
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum Comparison {
+	Equal,
+	NotEqual,
+	Greater,
+	GreaterEqual,
+	Less,
+	LessEqual,
+	Is,
+	IsNot,
+	In,
+	NotIn,
 }
 
 #[derive(Debug, PartialEq, Clone)]

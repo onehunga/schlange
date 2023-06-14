@@ -31,10 +31,10 @@ impl<'a> Lexer<'a> {
 			b'{' => Token::LSquirly,
 			b'}' => Token::RSquirly,
 
-			b'+' => { if is_alpha(self.peek()) { Token::UnaryPlus } else { Token::Plus }}
-			b'-' => { if is_alpha(self.peek()) { Token::UnaryMinus } else { Token::Minus }}
-			b'*' => { if self.peek() == b'*' { Token::Exponent } else { Token::Asterisk }}
-			b'/' => { if self.peek() == b'/' { Token::Floor } else { Token::Slash }}
+			b'+' => { if is_alpha(self.peek()) { self.advance(); Token::UnaryPlus } else { Token::Plus }}
+			b'-' => { if is_alpha(self.peek()) { self.advance(); Token::UnaryMinus } else { Token::Minus }}
+			b'*' => { if self.peek() == b'*' { self.advance(); Token::Exponent } else { Token::Asterisk }}
+			b'/' => { if self.peek() == b'/' { self.advance(); Token::Floor } else { Token::Slash }}
 			b'%' => Token::Percent,
 			b'~' => Token::UnaryNot,
 
@@ -42,16 +42,16 @@ impl<'a> Lexer<'a> {
 			b',' => Token::Comma,
 			b':' => Token::Colon,
 
-			b'=' => { if self.peek() == b'=' { Token::Equal } else { Token::Assign }}
-			b'!' => { if self.peek() == b'=' { Token::NotEqual } else { Token::Bang }}
+			b'=' => { if self.peek() == b'=' { self.advance(); Token::Equal } else { Token::Assign }}
+			b'!' => { if self.peek() == b'=' { self.advance(); Token::NotEqual } else { Token::Bang }}
 			b'<' => { match self.peek() {
-				b'<' => Token::ShiftLeft,
-				b'=' => Token::LessEqual,
+				b'<' => { self.advance(); Token::ShiftLeft },
+				b'=' => { self.advance(); Token::LessEqual },
 				_ => Token::Less,
 			}}
 			b'>' => { match self.peek() {
-				b'>' => Token::ShiftLeft,
-				b'=' => Token::GreaterEqual,
+				b'>' => { self.advance(); Token::ShiftRight },
+				b'=' => { self.advance(); Token::GreaterEqual },
 				_ => Token::Greater,
 			}}
 
@@ -117,9 +117,23 @@ impl<'a> Lexer<'a> {
 
 				let ident = &self.source[start..self.read];
 
-				unsafe { keyword::lookup(ident).unwrap_or(
-					Token::Ident(String::from_utf8_unchecked(ident.to_vec()))
-				)}
+				let read = self.read;
+				let ch = self.ch;
+
+				unsafe { match keyword::lookup(ident) {
+					Some(keyword) => {
+						match (keyword.clone(), self.next_token()) {
+							(Token::Is, Token::Not) => Token::IsNot,
+							(Token::Not, Token::In) => Token::NotIn,
+							_ => {
+								self.read = read;
+								self.ch = ch;
+								keyword
+							}
+						}
+					},
+					None => Token::Ident(String::from_utf8_unchecked(ident.to_vec()))
+				}}
 			}
 
 			_ => Token::Illegal,

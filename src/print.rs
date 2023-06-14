@@ -1,4 +1,4 @@
-use crate::{ast::{Statement, Expression}, scope::Scope};
+use crate::{ast::{Statement, Expression, Comparison}, scope::Scope};
 
 pub static mut TAB: usize = 2;
 
@@ -12,6 +12,7 @@ pub fn print_statement(stmt: &Statement, depth: usize) {
 	match stmt {
 		Statement::Function(name, parameters, scope) => print_function(name, parameters, scope, depth),
 		Statement::Expression(expr) => print_expr(expr, depth),
+		Statement::Comparison(lhs, comp, rhs) => print_comp(lhs, comp, rhs, depth),
 		Statement::Return(expr) => {
 			tabs(depth);
 			println!("return:");
@@ -39,6 +40,16 @@ fn print_expr(expr: &Expression, depth: usize) {
 			print_expr(rhs, depth + 1);
 		}
 	};
+}
+
+fn print_comp(lhs: &Expression, comp: &Comparison, rhs: &Expression, depth: usize) {
+	tabs(depth);
+	println!("comparison:");
+	tabs(depth + 1);
+	println!("kind: {comp:?}");
+	print_expr(lhs, depth + 1);
+	print_expr(rhs, depth + 1)
+
 }
 
 fn print_function(name: &String, parameters: &[String], scope: &Scope, depth: usize) {

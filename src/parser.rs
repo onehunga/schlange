@@ -70,7 +70,6 @@ impl<'a> Parser<'a> {
 					Token::Eof | Token::NewLine => None,
 					_ => {
 						self.advance();
-						dbg!(&self.current, &self.peek);
 						Some(self.expression(Precedence::None)?)
 					}
 				};
@@ -237,10 +236,21 @@ impl<'a> Parser<'a> {
 
 	fn peek_prec(&mut self) -> Precedence {
 		match self.peek {
-			Token::Plus |
-			Token::Minus => Precedence::Sum,
-			Token::Asterisk |
-			Token::Slash => Precedence::Prod,
+			Token::Exponent => Precedence::Exponent,
+			Token::UnaryPlus | Token::UnaryMinus | Token::UnaryNot => Precedence::Unary,
+			Token::Asterisk | Token::Slash | Token::Floor | Token::Percent => Precedence::Prod,
+			Token::Plus | Token::Minus => Precedence::Sum,
+			Token::ShiftLeft | Token::ShiftRight => Precedence::BitwiseShift,
+			Token::Ampersand => Precedence::BitwiseAnd,
+			Token::Caret => Precedence::BitwiseXor,
+			Token::Line => Precedence::BitwiseOr,
+			Token::Equal | Token::NotEqual | Token::Greater | Token::GreaterEqual | 
+			Token::Less | Token::LessEqual | Token::Is | Token::In |
+			Token::IsNot | Token::NotIn => Precedence::Comparison, 
+			Token::Not => Precedence::LogicalNot,
+			Token::And => Precedence::LogicalAnd,
+			Token::Or => Precedence::LogicalOr,
+			
 			_ => Precedence::None
 		}
 	}

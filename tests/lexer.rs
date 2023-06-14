@@ -10,6 +10,17 @@ fn run(src: &str, tokens: &[Token]) {
 }
 
 #[test]
+fn nots() {
+	run("is in not not in is not", &[
+		Token::Is,
+		Token::In,
+		Token::Not,
+		Token::NotIn,
+		Token::IsNot,
+	])
+}
+
+#[test]
 fn simple_token() {
 	run("()[]+-*/.,:",&[
 		Token::LParen,
@@ -29,15 +40,17 @@ fn simple_token() {
 
 #[test]
 fn double_tokens() {
-	run("= == ! != > >= < <=", &[
+	run("= == ! != > >= >> < <= <<", &[
 		Token::Assign,
 		Token::Equal,
 		Token::Bang,
 		Token::NotEqual,
 		Token::Greater,
 		Token::GreaterEqual,
+		Token::ShiftRight,
 		Token::Less,
-		Token::LessEqual
+		Token::LessEqual,
+		Token::ShiftLeft
 	]);
 }
 
