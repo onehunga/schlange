@@ -6,12 +6,29 @@ use crate::{
 		Expression,
 		BinOp,
 		Statement,
-		Precedence,
 		Comparison,
 		Unary
 	},
 	scope::Scope
 };
+
+#[derive(PartialEq, PartialOrd)]
+pub enum Precedence {
+	None,
+	LogicalOr,       // or
+	LogicalAnd,      // and
+	LogicalNot,      // not
+	Comparison,      // ==, !=, >, >=, <, <=, is, is not, in, not in
+	BitwiseOr,       // |
+	BitwiseXor,      // ^
+	BitwiseAnd,      // &
+	BitwiseShift,    // <<, >>
+	Sum,             // +, -
+	Prod,            // *, /, //, %
+	Unary,           // +x, -x, ~x
+	Exponent,        // **
+	Parentheses,     // ()
+}
 
 #[derive(Debug)]
 pub enum ParseError {
@@ -194,7 +211,7 @@ impl<'a> Parser<'a> {
 	fn expression(&mut self, prec: Precedence) -> Expr {
 		let mut left = self.prefix()?;
 
-		while prec <= self.prec(self.peek.clone()) && self.peek != Token::NewLine && self.peek != Token::Eof {
+		while prec <= self.prec(&self.peek) && self.peek != Token::NewLine && self.peek != Token::Eof {
 			self.advance();
 			left = self.infix(left)?;
 		}
@@ -203,29 +220,41 @@ impl<'a> Parser<'a> {
 	}
 
 	fn prefix(&mut self) -> Expr {
-		match &self.current {
-			Token::Int(int) => Ok(Box::new(Expression::Int(*int))),
-			Token::Float(float) => Ok(Box::new(Expression::Float(*float))),
-			Token::Ident(ident) => Ok(Box::new(Expression::Ident(ident.clone()))),
-			Token::String(string) => Ok(Box::new(Expression::String(string.clone()))),
+		Ok(match &self.current {
+			Token::Int(int) => Box::new(Expression::Int(*int)),
+			Token::Float(float) => Box::new(Expression::Float(*float)),
+			Token::Ident(ident) => Box::new(Expression::Ident(ident.clone())),
+			Token::String(string) => Box::new(Expression::String(string.clone())),
+			Token::LParen => {
+				self.advance();
+				let expr = self.expression(Precedence::None)?;
+				println!("hi");
+				if self.peek != Token::RParen { return Err(ParseError::UnexpectedToken {
+					found: self.peek.clone(),
+					expected: vec![Token::RParen]
+				})} else { expr }
+			}
 			Token::UnaryMinus => {
 				self.advance();
-				Ok(Box::new(Expression::Unary(self.prefix()?, Unary::Minus)))
+				Box::new(Expression::Unary(self.prefix()?, Unary::Minus))
 			},
 			Token::UnaryPlus => {
 				self.advance();
-				Ok(Box::new(Expression::Unary(self.prefix()?, Unary::Plus)))
+				Box::new(Expression::Unary(self.prefix()?, Unary::Plus))
 			},
 			Token::UnaryNot => {
 				self.advance();
-				Ok(Box::new(Expression::Unary(self.prefix()?, Unary::Not)))
+				Box::new(Expression::Unary(self.prefix()?, Unary::Not))
 			},
-			_ => Err(ParseError::InvalidPrefixExpression(self.current.clone(), self.peek.clone()))
-		}
+			_ => return Err(ParseError::InvalidPrefixExpression(
+				self.current.clone(),
+				self.peek.clone())
+			)
+		})
 	}
 
 	fn infix(&mut self, lhs: Box<Expression>) -> Expr {
-		let prec = self.prec(self.current.clone());
+		let prec = self.prec(&self.current);
 		let current = self.current.clone();
 		self.advance();
 		let rhs = self.expression(prec)?;
@@ -241,9 +270,8 @@ impl<'a> Parser<'a> {
 		);
 
 		get_infix!(lhs, rhs, current, Comparison, 
-			Equal, NotEqual, Greater, GreaterEqual,
-			Less, LessEqual, Is, IsNot, In,	NotIn,
-			Not, And, Or
+			Equal, NotEqual, Greater, GreaterEqual,	Less,
+			LessEqual, Is, IsNot, In, NotIn, Not, And, Or
 		);
 		
 		get_infix!(lhs, rhs, current, Bitwise,
@@ -262,8 +290,9 @@ impl<'a> Parser<'a> {
 		self.peek = self.lexer.next_token();
 	}
 
-	fn prec(&mut self, token: Token) -> Precedence {
+	fn prec(&self, token: &Token) -> Precedence {
 		match token {
+			Token::LParen | Token::RParen => Precedence::Parentheses,
 			Token::Exponent => Precedence::Exponent,
 			Token::UnaryPlus | Token::UnaryMinus | Token::UnaryNot => Precedence::Unary,
 			Token::Asterisk | Token::Slash | Token::Floor | Token::Percent => Precedence::Prod,
@@ -286,26 +315,19 @@ impl<'a> Parser<'a> {
 
 macro_rules! get_infix {
 	( $lhs:ident , $rhs:ident, $found:ident, $expr_kind:ident, $(($token:ident , $kind:ident)), *) => {
-		{
-			$(
-				if $found == Token::$token {
-					return Ok(Box::new(Expression::$expr_kind(
-						$lhs, $rhs, $expr_kind::$kind
-					)));
-				}
-			)*
-		}
+		{$(if $found == Token::$token {
+			return Ok(Box::new(Expression::$expr_kind(
+				$lhs, $rhs, $expr_kind::$kind
+			)));
+		})*}
 	};
+	
 	( $lhs:ident, $rhs:ident, $found:ident, $expr_kind:ident, $($token:ident), *) => {
-		{
-			$(
-				if $found == Token::$token {
-					return Ok(Box::new(Expression::$expr_kind(
-						$lhs, $rhs, $expr_kind::$token
-					)));
-				}
-			)*
-		}
+		{$(if $found == Token::$token {
+			return Ok(Box::new(Expression::$expr_kind(
+				$lhs, $rhs, $expr_kind::$token
+			)));
+		})*}
 	}
 }
 

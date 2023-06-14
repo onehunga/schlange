@@ -1,5 +1,1 @@
-def main():
-    def foo():
-        pass
-    pass
-return 1 + 2
+(1 + 2 - 3)

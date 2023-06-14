@@ -14,7 +14,7 @@ pub fn print_statement(stmt: &Statement, depth: usize) {
 		Statement::Expression(expr) => print_expr(expr, depth),
 		Statement::Return(expr) => {
 			tabs(depth);
-			println!("return:");
+			println!("Return:");
 			if let Some(expr) = expr {	print_expr(expr, depth + 1)	}
 		}
 		Statement::Pass => { tabs(depth); println!("pass") },
@@ -25,10 +25,10 @@ pub fn print_statement(stmt: &Statement, depth: usize) {
 fn print_expr(expr: &Expression, depth: usize) {
 	tabs(depth);
 	match expr {
-		Expression::Int(int) => println!("int: {int}"),
-		Expression::Float(float) => println!("float: {float}"),
-		Expression::Ident(ident) => println!("ident: {ident}"),
-		Expression::String(string) => println!("string: {string}"),
+		Expression::Int(int) => println!("Int: {int}"),
+		Expression::Float(float) => println!("Float: {float}"),
+		Expression::Ident(ident) => println!("Ident: {ident}"),
+		Expression::String(string) => println!("String: {string}"),
 		Expression::Unary(lhs, uny) => {
 			println!("Unary:");
 			tabs(depth + 1);
@@ -61,7 +61,7 @@ fn print_expr(expr: &Expression, depth: usize) {
 
 fn print_function(name: &String, parameters: &[String], scope: &Scope, depth: usize) {
 	tabs(depth);
-	println!("function:");
+	println!("Function:");
 	tabs(depth + 1);
 	println!("name: {}", name);
 	tabs(depth + 1);
