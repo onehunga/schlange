@@ -201,10 +201,8 @@ impl<'a> Parser<'a> {
 
 	fn infix(&mut self, lhs: Box<Expression>) -> Expr {
 		match self.current {
-			Token::Plus |
-			Token::Minus |
-			Token::Asterisk |
-			Token::Slash => self.binary(lhs),
+			Token::Plus | Token::Minus | Token::Asterisk | Token::Percent |
+			Token::Slash | Token::Exponent | Token::Floor => self.binary(lhs),
 			_ => Err(ParseError::InvalidExpressionKind(self.current.clone()))
 		}
 	}
@@ -226,10 +224,21 @@ impl<'a> Parser<'a> {
 
 	fn current_prec(&mut self) -> Precedence {
 		match self.current {
-			Token::Plus |
-			Token::Minus => Precedence::Sum,
-			Token::Asterisk |
-			Token::Slash => Precedence::Prod,
+			Token::Exponent => Precedence::Exponent,
+			Token::UnaryPlus | Token::UnaryMinus | Token::UnaryNot => Precedence::Unary,
+			Token::Asterisk | Token::Slash | Token::Floor | Token::Percent => Precedence::Prod,
+			Token::Plus | Token::Minus => Precedence::Sum,
+			Token::ShiftLeft | Token::ShiftRight => Precedence::BitwiseShift,
+			Token::Ampersand => Precedence::BitwiseAnd,
+			Token::Caret => Precedence::BitwiseXor,
+			Token::Line => Precedence::BitwiseOr,
+			Token::Equal | Token::NotEqual | Token::Greater | Token::GreaterEqual | 
+			Token::Less | Token::LessEqual | Token::Is | Token::In |
+			Token::IsNot | Token::NotIn => Precedence::Comparison, 
+			Token::Not => Precedence::LogicalNot,
+			Token::And => Precedence::LogicalAnd,
+			Token::Or => Precedence::LogicalOr,
+			
 			_ => Precedence::None
 		}
 	}
@@ -261,6 +270,9 @@ impl<'a> Parser<'a> {
 			Token::Minus => Ok(BinOp::Sub),
 			Token::Asterisk => Ok(BinOp::Mul),
 			Token::Slash => Ok(BinOp::Div),
+			Token::Floor => Ok(BinOp::Floor),
+			Token::Exponent => Ok(BinOp::Pow),
+			Token::Percent => Ok(BinOp::Mod),
 			_ => Err(ParseError::InvalidOperator)
 		}
 	}

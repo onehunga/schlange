@@ -140,15 +140,13 @@ impl<'a> Lexer<'a> {
 		}
 	}
 
+	#[inline(always)]
 	fn advance(&mut self) {
-		if self.read >= self.source.len() {
-			self.ch = 0;
-			return;
-		}
-		self.ch = self.source[self.read];
+		self.ch = self.peek();
 		self.read += 1;
 	}
 
+	#[inline(always)]
 	fn peek(&self) -> u8 {
 		if self.read >= self.source.len() {
 			return 0;
