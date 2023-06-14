@@ -38,7 +38,7 @@ fn functions() {
 					Statement::Expression(Box::new(Expression::BinOp(
 						Box::new(Expression::Int(1)),
 						Box::new(Expression::Int(2)),
-						BinOp::Add		
+						BinOp::Addition		
 					))),
 					Statement::Return(Some(Box::new(
 							Expression::Ident("pizza".to_string())
@@ -59,26 +59,26 @@ fn binary_expressions() {
 				Box::new(Expression::BinOp(
 					Box::new(Expression::Int(2)),
 					Box::new(Expression::Int(3)),
-					BinOp::Mul
+					BinOp::Multiplication
 				)),
 				Box::new(Expression::Int(4)),
-				BinOp::Sub
+				BinOp::Subtraction
 			)),
-			BinOp::Add
+			BinOp::Addition
 		))),
 		Statement::Expression(Box::new(Expression::BinOp(
 			Box::new(Expression::Int(90)),
 			Box::new(Expression::Int(3)),
-			BinOp::Sub
+			BinOp::Subtraction
 		))),
 		Statement::Expression(Box::new(Expression::BinOp(
 			Box::new(Expression::BinOp(
 				Box::new(Expression::Float(17.3)),
 				Box::new(Expression::Float(2.0)),
-				BinOp::Div
+				BinOp::Divition
 			)),
 			Box::new(Expression::Float(3.2)),
-			BinOp::Sub
+			BinOp::Subtraction
 		)))
 	])
 }

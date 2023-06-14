@@ -23,12 +23,12 @@ pub enum Precedence {
 /// Binary operations
 #[derive(Debug, PartialEq, Clone)]
 pub enum BinOp {
-	Add,
-	Sub,
-	Mul,
-	Div,
-	Pow,
-	Mod,
+	Addition,
+	Subtraction,
+	Multiplication,
+	Divition,
+	Power,
+	Modulo,
 	Floor,
 }
 

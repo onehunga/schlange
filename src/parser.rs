@@ -231,13 +231,13 @@ impl<'a> Parser<'a> {
 		let rhs = self.expression(prec)?;
 
 		get_infix!(lhs, rhs, current, BinOp,
-			(Plus, Add),
-			(Minus, Sub),
-			(Asterisk, Mul),
-			(Slash, Div),
+			(Plus, Addition),
+			(Minus, Subtraction),
+			(Asterisk, Multiplication),
+			(Slash, Divition),
 			(Floor, Floor),
-			(Exponent, Pow),
-			(Percent, Mod)
+			(Exponent, Power),
+			(Percent, Modulo)
 		);
 
 		get_infix!(lhs, rhs, current, Comparison, 
