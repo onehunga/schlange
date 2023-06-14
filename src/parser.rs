@@ -1,6 +1,6 @@
 use std::mem::swap;
 
-use crate::{token::Token, lexer::Lexer, ast::{Expression, BinOp, Statement, Precedence, Comparison}, scope::Scope};
+use crate::{token::Token, lexer::Lexer, ast::{Expression, BinOp, Statement, Precedence, Comparison, Logical}, scope::Scope};
 
 #[derive(Debug)]
 pub enum ParseError {
@@ -207,8 +207,18 @@ impl<'a> Parser<'a> {
 			Token::Equal | Token::NotEqual | Token::Greater | Token::GreaterEqual |
 			Token::Less | Token::LessEqual | Token::Is | Token::IsNot | Token::In | 
 			Token::NotIn => self.comparison(lhs),
+			Token::Not | Token::And | Token::Or => self.logical(lhs),
 			_ => Err(ParseError::InvalidExpressionKind(self.current.clone()))
 		}
+	}
+
+	fn logical(&mut self, lhs: Box<Expression>) -> Expr {
+		let prec = self.current_prec();
+		let log = self.get_log()?;
+		self.advance();
+
+		let rhs = self.expression(prec)?;
+		Ok(Box::new(Expression::Logical(lhs, rhs, log)))
 	}
 
 	fn comparison(&mut self, lhs: Box<Expression>) -> Expr {
@@ -217,7 +227,6 @@ impl<'a> Parser<'a> {
 		self.advance();
 
 		let rhs = self.expression(prec)?;
-
 		Ok(Box::new(Expression::Comparison(lhs, rhs, cmp)))
 	}
 
@@ -227,7 +236,6 @@ impl<'a> Parser<'a> {
 		self.advance();
 
 		let rhs = self.expression(prec)?;
-
 		Ok(Box::new(Expression::BinOp(lhs, rhs, op)))
 	}
 
@@ -287,7 +295,13 @@ impl<'a> Parser<'a> {
 			Token::Floor => BinOp::Floor,
 			Token::Exponent => BinOp::Pow,
 			Token::Percent => BinOp::Mod,
-			_ => return Err(ParseError::InvalidOperator(self.current.clone()))
+			_ => return Err(ParseError::UnexpectedToken {
+				found: self.current.clone(),
+				expected: vec![
+					Token::Plus, Token::Minus, Token::Asterisk,
+					Token::Slash, Token::Floor, Token::Exponent, Token::Percent
+				]
+			})
 		})
 	}
 
@@ -303,7 +317,26 @@ impl<'a> Parser<'a> {
 			Token::IsNot => Comparison::IsNot,
 			Token::In => Comparison::In,
 			Token::NotIn => Comparison::NotIn,
-			_ => return Err(ParseError::InvalidComparison(self.current.clone()))
+			_ => return Err(ParseError::UnexpectedToken {
+				found: self.current.clone(),
+				expected: vec![
+					Token::Equal, Token::NotEqual, Token::Greater,
+					Token::GreaterEqual, Token::Less, Token::LessEqual,
+					Token::Is, Token::IsNot, Token::In, Token::NotIn
+				]
+			})
+		})
+	}
+
+	fn get_log(&mut self) -> ParserResult<Logical> {
+		Ok(match self.current {
+			Token::Not => Logical::Not,
+			Token::And => Logical::And,
+			Token::Or => Logical::Or,
+			_ => return Err(ParseError::UnexpectedToken {
+				found: self.current.clone(),
+				expected: vec![Token::Not, Token::And, Token::Or]
+			})
 		})
 	}
 }

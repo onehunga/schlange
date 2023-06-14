@@ -59,6 +59,13 @@ pub enum Comparison {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+pub enum Logical {
+	Not,
+	And,
+	Or,
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum Expression {
 	Int(u64),
 	Float(f64),
@@ -69,6 +76,7 @@ pub enum Expression {
 	///  - lhs
 	///  - rhs
 	///  - op
+	Logical(Box<Expression>, Box<Expression>, Logical),
 	BinOp(Box<Expression>, Box<Expression>, BinOp),
 	Comparison(Box<Expression>, Box<Expression>, Comparison),
 }

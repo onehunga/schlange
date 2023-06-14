@@ -1,4 +1,4 @@
-use crate::{ast::{Statement, Expression, Comparison}, scope::Scope};
+use crate::{ast::{Statement, Expression}, scope::Scope};
 
 pub static mut TAB: usize = 2;
 
@@ -29,27 +29,28 @@ fn print_expr(expr: &Expression, depth: usize) {
 		Expression::Float(float) => println!("float: {float}"),
 		Expression::Ident(ident) => println!("ident: {ident}"),
 		Expression::String(string) => println!("string: {string}"),
-		Expression::Comparison(lhs, rhs, cmp) => print_comp(lhs, rhs, cmp, depth),
+		Expression::Comparison(lhs, rhs, cmp) => {
+			println!("comparison:");
+			tabs(depth + 1);
+			println!("kind: {cmp:?}");
+			print_expr(lhs, depth + 1);
+			print_expr(rhs, depth + 1)
+		},
+		Expression::Logical(lhs, rhs, log) => {
+			println!("logical");
+			tabs(depth + 1);
+			println!("kind: {log:?}");
+			print_expr(lhs, depth + 1);
+			print_expr(rhs, depth + 1)
+		},
 		Expression::BinOp(lhs, rhs, op) => {
 			println!("binary:");
-				
 			tabs(depth + 1);
 			println!("operator: {op:?}");
-
 			print_expr(lhs, depth + 1);
 			print_expr(rhs, depth + 1);
 		}
 	};
-}
-
-fn print_comp(lhs: &Expression, rhs: &Expression, cmp: &Comparison, depth: usize) {
-	tabs(depth);
-	println!("comparison:");
-	tabs(depth + 1);
-	println!("kind: {cmp:?}");
-	print_expr(lhs, depth + 1);
-	print_expr(rhs, depth + 1)
-
 }
 
 fn print_function(name: &String, parameters: &[String], scope: &Scope, depth: usize) {
